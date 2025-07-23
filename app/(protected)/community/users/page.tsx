@@ -1,215 +1,392 @@
 'use client';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { CloudUpload, MoreVertical, Settings, User2 } from 'lucide-react';
 import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-} from '@/components/ui/pagination';
+  Card,
+  CardFooter,
+  CardHeader,
+  CardTable,
+  CardTitle,
+  CardToolbar,
+} from '@/components/ui/card';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  CloudUpload,
+  MoreVertical,
+  Search,
+  Settings2,
+  User2,
+} from 'lucide-react';
+import {
+  ColumnDef,
+  PaginationState,
+  SortingState,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import { Input, InputWrapper } from '@/components/ui/input';
+import React, { useMemo, useState } from 'react';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import React from 'react';
+import { DataGrid } from '@/components/ui/data-grid';
+import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
+import { DataGridColumnVisibility } from '@/components/ui/data-grid-column-visibility';
+import { DataGridPagination } from '@/components/ui/data-grid-pagination';
+import { DataGridTable } from '@/components/ui/data-grid-table';
+import { PageHeader } from '@/components/ui/page-header';
 
-const users = [
+interface IUser {
+  id: string;
+  name: string;
+  avatar: string;
+  phone: string;
+  email: string;
+  units: number;
+  resident: string;
+  admin: string;
+}
+
+const users: IUser[] = [
   {
-    name: 'Tyler Hero',
     id: '173594941-2',
+    name: 'Tyler Hero',
     avatar: '/media/avatars/300-1.png',
     phone: '+593 930 12 4567',
     email: 'tyler.hero@gmail.com',
-    unidades: 2,
-    residente: 'Propietario',
+    units: 2,
+    resident: 'Propietario',
     admin: 'Admin',
   },
   {
-    name: 'Esther Howard',
     id: '103594941-2',
+    name: 'Esther Howard',
     avatar: '/media/avatars/300-2.png',
     phone: '+593 981 45 2379',
     email: 'esther.howard@gmail.com',
-    unidades: 1,
-    residente: 'Propietario',
+    units: 1,
+    resident: 'Propietario',
     admin: 'Admin',
   },
-  // ...more mock users
+  {
+    id: '113594784-2',
+    name: 'Jacob Jones',
+    avatar: '/media/avatars/300-3.png',
+    phone: '+593 930 12 4567',
+    email: 'tyler.hero@gmail.com',
+    units: 2,
+    resident: 'Propietario',
+    admin: 'N/A',
+  },
+  {
+    id: '160033140-7',
+    name: 'Cody Fisher',
+    avatar: '/media/avatars/300-4.png',
+    phone: '+593 991 78 6032',
+    email: 'cody.fisher@gmail.com',
+    units: 1,
+    resident: 'Propietario',
+    admin: 'N/A',
+  },
+  {
+    id: '183519941-1',
+    name: 'Leslie Alexander',
+    avatar: '/media/avatars/300-5.png',
+    phone: '+593 987 20 4581',
+    email: 'leslie.alexander@gmail.com',
+    units: 1,
+    resident: 'Propietario',
+    admin: 'N/A',
+  },
+  {
+    id: '113594784-2',
+    name: 'Robert Fox',
+    avatar: '/media/avatars/300-6.png',
+    phone: '+593 995 10 3344',
+    email: 'robert.fox@gmail.com',
+    units: 1,
+    resident: 'Inquilino',
+    admin: 'N/A',
+  },
+  {
+    id: '87654321',
+    name: 'Guy Hawkins',
+    avatar: '/media/avatars/300-7.png',
+    phone: '+593 972 66 8820',
+    email: 'guy.hawkins@gmail.com',
+    units: 2,
+    resident: 'Propietario',
+    admin: 'N/A',
+  },
+  {
+    id: 'ZX654321',
+    name: 'Theresa Webb',
+    avatar: '/media/avatars/300-8.png',
+    phone: '+593 989 77 1903',
+    email: 'theresa.webb@gmail.com',
+    units: 1,
+    resident: 'Propietario',
+    admin: 'N/A',
+  },
+  {
+    id: '160033140-7',
+    name: 'Marvin McKinney',
+    avatar: '/media/avatars/300-9.png',
+    phone: '+593 960 05 6612',
+    email: 'marvin.mckenney@gmail.com',
+    units: 1,
+    resident: 'Inquilino',
+    admin: 'N/A',
+  },
+  {
+    id: '172534659-7',
+    name: 'Ronald Richards',
+    avatar: '/media/avatars/300-10.png',
+    phone: '+593 976 84 9901',
+    email: 'ronald.richards@gmail.com',
+    units: 1,
+    resident: 'Propietario',
+    admin: 'N/A',
+  },
 ];
 
 export default function UsersPage() {
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 5,
+  });
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'name', desc: true },
+  ]);
+
+  const columns = useMemo<ColumnDef<IUser>[]>(
+    () => [
+      {
+        accessorKey: 'name',
+        id: 'name',
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Usuario" column={column} />
+        ),
+        cell: ({ row }) => {
+          return (
+            <div className="flex items-center gap-2.5">
+              <div className="w-10 h-10 bg-[#F0F1F6] rounded-full flex items-center justify-center">
+                <span className="text-base font-medium text-[#4B5675]">
+                  {row.original.name
+                    .split(' ')
+                    .map((n) => n[0])
+                    .join('')}
+                </span>
+              </div>
+              <div className="flex flex-col gap-2">
+                <span className="text-sm font-medium text-[#111B37]">
+                  {row.original.name}
+                </span>
+                <span className="text-sm font-normal text-[#4B5675]">
+                  Cédula: {row.original.id}
+                </span>
+              </div>
+            </div>
+          );
+        },
+        size: 290,
+        enableSorting: true,
+        enableHiding: false,
+      },
+      {
+        accessorKey: 'contact',
+        id: 'contact',
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Contacto" column={column} />
+        ),
+        cell: ({ row }) => (
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium text-[#111B37]">
+              {row.original.phone}
+            </span>
+            <span className="text-sm font-normal text-[#4B5675]">
+              {row.original.email}
+            </span>
+          </div>
+        ),
+        size: 290,
+        enableSorting: true,
+        enableHiding: false,
+      },
+      {
+        accessorKey: 'units',
+        id: 'units',
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Unidades" column={column} />
+        ),
+        cell: ({ row }) => (
+          <span className="text-sm font-medium text-[#111B37]">
+            {row.original.units}
+          </span>
+        ),
+        size: 130,
+        enableSorting: true,
+        enableHiding: false,
+      },
+      {
+        accessorKey: 'resident',
+        id: 'resident',
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Residente" column={column} />
+        ),
+        cell: ({ row }) => {
+          const isInquilino = row.original.resident === 'Inquilino';
+          return (
+            <div
+              className={`px-1.5 py-1 rounded-full border ${
+                isInquilino
+                  ? 'bg-[#F0ECFF] border-[#4921EA]/20'
+                  : 'bg-[#E1FCE9] border-[#0BC33F]/20'
+              }`}
+            >
+              <span
+                className={`text-sm font-medium ${
+                  isInquilino ? 'text-[#4921EA]' : 'text-[#0BC33F]'
+                }`}
+              >
+                {row.original.resident}
+              </span>
+            </div>
+          );
+        },
+        size: 130,
+        enableSorting: true,
+        enableHiding: false,
+      },
+      {
+        accessorKey: 'admin',
+        id: 'admin',
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Administrador" column={column} />
+        ),
+        cell: ({ row }) => {
+          const isAdmin = row.original.admin === 'Admin';
+          return (
+            <div
+              className={`px-1.5 py-1 rounded-full border ${
+                isAdmin
+                  ? 'bg-[#E7F2FF] border-[#1379F0]/20'
+                  : 'bg-transparent border-transparent'
+              }`}
+            >
+              <span
+                className={`text-sm font-medium ${
+                  isAdmin ? 'text-[#1379F0]' : 'text-[#111B37]'
+                }`}
+              >
+                {row.original.admin}
+              </span>
+            </div>
+          );
+        },
+        size: 130,
+        enableSorting: true,
+        enableHiding: false,
+      },
+      {
+        accessorKey: 'actions',
+        id: 'actions',
+        header: () => (
+          <span className="text-sm font-normal text-[#4B5675]">Acciones</span>
+        ),
+        cell: () => (
+          <Button variant="ghost" size="sm" className="w-6 h-6 p-0">
+            <MoreVertical className="h-6 w-6 text-[#78829D]" />
+          </Button>
+        ),
+        size: 130,
+        enableSorting: false,
+        enableHiding: false,
+      },
+    ],
+    [],
+  );
+
+  const table = useReactTable({
+    columns,
+    data: users,
+    pageCount: Math.ceil((users?.length || 0) / pagination.pageSize),
+    getRowId: (row: IUser) => row.id,
+    state: {
+      pagination,
+      sorting,
+    },
+    columnResizeMode: 'onChange',
+    onPaginationChange: setPagination,
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
+
   return (
     <div className="flex flex-col gap-8 px-5 py-8 max-w-[1200px] mx-auto">
-      {/* Header */}
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold text-[#111B37]">Usuarios</h1>
-        <div className="flex items-center gap-4">
-          <span className="text-[15px] text-[#4B5675]">
-            Gestiona los usuarios de la comunidad, asigna roles y unidades
-          </span>
-        </div>
-      </div>
-      {/* Actions */}
-      <div className="flex justify-end gap-2">
-        <Button
-          variant="secondary"
-          size="md"
-          className="bg-white text-[#4B5675] border border-[#E2E4ED] shadow-sm"
-        >
-          <CloudUpload className="mr-2 h-4 w-4" />
-          Carga masiva
-        </Button>
-        <Button variant="primary" size="md">
-          <User2 className="mr-2 h-4 w-4" />
-          Nuevo Usuario
-        </Button>
-      </div>
-      {/* Table Card */}
-      <div className="bg-white rounded-xl shadow p-0 border border-[#E6E8F0]">
-        {/* Table Top Bar */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#E6E8F0]">
-          <span className="text-sm font-medium text-[#111B37]">
-            Mostrando 10 de 150 usuarios
-          </span>
-          <div className="flex items-center gap-4">
-            <Input placeholder="Buscar Usuario" className="w-60" />
-            <div className="flex gap-2">
-              <Badge variant="secondary" appearance="light" size="sm">
-                Status: <span className="ml-1 text-[#27314B]">Activo</span>
-              </Badge>
-              <Badge variant="secondary" appearance="light" size="sm">
-                Ordenar:{' '}
-                <span className="ml-1 text-[#27314B]">Más recientes</span>
-              </Badge>
-            </div>
+      <PageHeader
+        title="Usuarios"
+        description="Gestiona los usuarios de la comunidad, asigna roles y unidades"
+        actions={
+          <>
             <Button
               variant="secondary"
-              size="sm"
-              className="bg-[#E7F2FF] text-[#1379F0] border border-[#1379F0]/20"
+              size="md"
+              className="bg-white text-[#4B5675] border border-[#E2E4ED] shadow-sm h-[34px] px-3 py-2"
             >
-              <Settings className="mr-2 h-4 w-4" />
-              Filtros
+              <CloudUpload className="mr-1 h-4 w-4" />
+              Carga masiva
             </Button>
-          </div>
-        </div>
-        {/* Table */}
-        <Table className="min-w-full">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Usuario</TableHead>
-              <TableHead>Contacto</TableHead>
-              <TableHead>Unidades</TableHead>
-              <TableHead>Residente</TableHead>
-              <TableHead>Administrador</TableHead>
-              <TableHead>Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users.map((user, i) => (
-              <TableRow key={i}>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <Avatar className="size-10">
-                      <AvatarImage src={user.avatar} alt={user.name} />
-                      <AvatarFallback>{user.name[0]}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="font-medium text-[#111B37]">
-                        {user.name}
-                      </div>
-                      <div className="text-xs text-[#4B5675]">
-                        Cédula: {user.id}
-                      </div>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <span className="text-sm text-[#111B37]">{user.phone}</span>
-                    <span className="text-xs text-[#4B5675]">{user.email}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm text-[#111B37]">
-                    {user.unidades}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="success" appearance="light" size="sm">
-                    {user.residente}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="primary" appearance="light" size="sm">
-                    {user.admin}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Button variant="ghost" size="sm">
-                    <MoreVertical className="h-5 w-5 text-[#78829D]" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        {/* Table Footer / Pagination */}
-        <div className="flex items-center justify-between px-5 py-4 border-t border-[#E6E8F0]">
-          <div className="flex items-center gap-2 text-sm text-[#78829D]">
-            <span>Mostrar</span>
-            <Button variant="secondary" size="sm" className="px-2 py-1">
-              10
+            <Button variant="primary" size="md" className="h-[34px] px-3 py-2">
+              <User2 className="mr-1 h-4 w-4" />
+              Nuevo Usuario
             </Button>
-            <span>por página</span>
-            <span className="ml-4">1-10 of 150</span>
-          </div>
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <Button variant="ghost" size="sm">
-                  {'<'}
-                </Button>
-              </PaginationItem>
-              <PaginationItem>
+          </>
+        }
+      />
+
+      <DataGrid table={table} recordCount={users?.length || 0}>
+        <Card>
+          <CardHeader className="py-3">
+            <CardTitle>Mostrando 10 de 100 usuarios</CardTitle>
+            <CardToolbar>
+              <InputWrapper>
                 <Button
-                  variant="ghost"
                   size="sm"
-                  className="bg-[#E6E8F0] text-[#27314B]"
+                  variant="dim"
+                  mode="icon"
+                  className="size-5 -ms-0.5"
                 >
-                  1
+                  <Search />
                 </Button>
-              </PaginationItem>
-              <PaginationItem>
-                <Button variant="ghost" size="sm">
-                  2
-                </Button>
-              </PaginationItem>
-              <PaginationItem>
-                <Button variant="ghost" size="sm">
-                  3
-                </Button>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationEllipsis />
-              </PaginationItem>
-              <PaginationItem>
-                <Button variant="ghost" size="sm">
-                  {'>'}
-                </Button>
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        </div>
-      </div>
+                <Input type="text" placeholder="Buscar Usuario" />
+              </InputWrapper>
+              <DataGridColumnVisibility
+                table={table}
+                trigger={
+                  <Button variant="outline" size="sm">
+                    <Settings2 />
+                    Filtros
+                  </Button>
+                }
+              />
+            </CardToolbar>
+          </CardHeader>
+          <CardTable>
+            <ScrollArea>
+              <DataGridTable />
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+          </CardTable>
+          <CardFooter>
+            <DataGridPagination />
+          </CardFooter>
+        </Card>
+      </DataGrid>
     </div>
   );
 }
