@@ -1,6 +1,6 @@
-# Metronic 9 | All-in-One Tailwind based HTML/React/Next.js Template for Modern Web Applications
+# VECCI
 
-## Getting Started 
+## Getting Started
 
 The official [Metronic Next.js Documentation]https://docs.keenthemes.com/metronic-nextjs() will be released soon,
 alongside the stable Metronic release, expected within the next week.
