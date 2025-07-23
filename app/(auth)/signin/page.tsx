@@ -1,16 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { RiErrorWarningFill } from '@remixicon/react';
-import { AlertCircle, Eye, EyeOff } from 'lucide-react';
-import { signIn } from 'next-auth/react';
-import { useForm } from 'react-hook-form';
 import { Alert, AlertIcon, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 import {
   Form,
   FormControl,
@@ -19,10 +10,18 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { SigninSchemaType, getSigninSchema } from '../forms/signin-schema';
+
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import Link from 'next/link';
 import { Spinner } from '@/components/ui/spinners';
-import { Icons } from '@/components/common/icons';
-import { getSigninSchema, SigninSchemaType } from '../forms/signin-schema';
+import { signIn } from 'next-auth/react';
+import { useForm } from 'react-hook-form';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 export default function Page() {
   const router = useRouter();
@@ -63,7 +62,7 @@ export default function Page() {
           ? err.message
           : 'An unexpected error occurred. Please try again.',
       );
-    } finally {
+      // } finally {
       setIsProcessing(false);
     }
   }
@@ -74,13 +73,21 @@ export default function Page() {
         onSubmit={form.handleSubmit(onSubmit)}
         className="block w-full space-y-5"
       >
-        <div className="space-y-1.5 pb-3">
+        <div className="space-y-15 ">
           <h1 className="text-2xl font-semibold tracking-tight text-center">
-            Sign in to Metronic
+            Iniciar sesión
           </h1>
         </div>
-
-        <Alert size="sm" close={false}>
+        <p className="text-sm text-muted-foreground text-center">
+          ¿Necesitas una cuenta?{' '}
+          <Link
+            href="/signup"
+            className="text-sm font-semibold text-foreground hover:text-primary"
+          >
+            Regístrate
+          </Link>
+        </p>
+        {/* <Alert size="sm" close={false}>
           <AlertIcon>
             <RiErrorWarningFill className="text-primary" />
           </AlertIcon>
@@ -90,9 +97,9 @@ export default function Page() {
             <span className="text-mono font-semibold">demo123</span> for demo
             access.
           </AlertTitle>
-        </Alert>
+        </Alert> */}
 
-        <div className="flex flex-col gap-3.5">
+        {/* <div className="flex flex-col gap-3.5">
           <Button
             variant="outline"
             type="button"
@@ -110,7 +117,7 @@ export default function Page() {
           <div className="relative flex justify-center text-xs uppercase">
             <span className="bg-background px-2 text-muted-foreground">or</span>
           </div>
-        </div>
+        </div> */}
 
         {error && (
           <Alert variant="destructive">
@@ -128,7 +135,7 @@ export default function Page() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="Your email" {...field} />
+                <Input placeholder="email@email.com" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -146,12 +153,12 @@ export default function Page() {
                   href="/reset-password"
                   className="text-sm font-semibold text-foreground hover:text-primary"
                 >
-                  Forgot Password?
+                  ¿Olvidaste tu contraseña?
                 </Link>
               </div>
               <div className="relative">
                 <Input
-                  placeholder="Your password"
+                  placeholder="Ingresa la contraseña"
                   type={passwordVisible ? 'text' : 'password'} // Toggle input type
                   {...field}
                 />
@@ -193,7 +200,7 @@ export default function Page() {
                   htmlFor="remember-me"
                   className="text-sm leading-none text-muted-foreground"
                 >
-                  Remember me
+                  Recuérdame
                 </label>
               </>
             )}
@@ -203,19 +210,9 @@ export default function Page() {
         <div className="flex flex-col gap-2.5">
           <Button type="submit" disabled={isProcessing}>
             {isProcessing ? <Spinner className="size-4 animate-spin" /> : null}
-            Continue
+            Iniciar sesión
           </Button>
         </div>
-
-        <p className="text-sm text-muted-foreground text-center">
-          Don&apos;t have an account?{' '}
-          <Link
-            href="/signup"
-            className="text-sm font-semibold text-foreground hover:text-primary"
-          >
-            Sign Up
-          </Link>
-        </p>
       </form>
     </Form>
   );
