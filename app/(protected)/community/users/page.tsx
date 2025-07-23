@@ -154,7 +154,7 @@ export default function UsersPage() {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="sm">
                     <MoreVertical className="h-5 w-5 text-[#78829D]" />
                   </Button>
                 </TableCell>
@@ -175,26 +175,26 @@ export default function UsersPage() {
           <Pagination>
             <PaginationContent>
               <PaginationItem>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="sm">
                   {'<'}
                 </Button>
               </PaginationItem>
               <PaginationItem>
                 <Button
                   variant="ghost"
-                  size="icon"
+                  size="sm"
                   className="bg-[#E6E8F0] text-[#27314B]"
                 >
                   1
                 </Button>
               </PaginationItem>
               <PaginationItem>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="sm">
                   2
                 </Button>
               </PaginationItem>
               <PaginationItem>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="sm">
                   3
                 </Button>
               </PaginationItem>
@@ -202,7 +202,7 @@ export default function UsersPage() {
                 <PaginationEllipsis />
               </PaginationItem>
               <PaginationItem>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="sm">
                   {'>'}
                 </Button>
               </PaginationItem>
