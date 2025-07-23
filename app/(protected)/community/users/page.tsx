@@ -36,6 +36,7 @@ import { DataGridColumnVisibility } from '@/components/ui/data-grid-column-visib
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
 import { PageHeader } from '@/components/ui/page-header';
+import { UserDialog } from './components/user-dialog';
 
 interface IUser {
   id: string;
@@ -152,6 +153,7 @@ const users: IUser[] = [
 ];
 
 export default function UsersPage() {
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 5,
@@ -341,7 +343,12 @@ export default function UsersPage() {
               <CloudUpload className="mr-1 h-4 w-4" />
               Carga masiva
             </Button>
-            <Button variant="primary" size="md" className="h-[34px] px-3 py-2">
+            <Button
+              variant="primary"
+              size="md"
+              className="h-[34px] px-3 py-2"
+              onClick={() => setDialogOpen(true)}
+            >
               <User2 className="mr-1 h-4 w-4" />
               Nuevo Usuario
             </Button>
@@ -387,6 +394,8 @@ export default function UsersPage() {
           </CardFooter>
         </Card>
       </DataGrid>
+
+      <UserDialog open={dialogOpen} onOpenChange={setDialogOpen} />
     </div>
   );
 }
