@@ -8,15 +8,8 @@ import {
   AlertTitle,
 } from '@/components/ui/alert';
 import { Calendar, ChevronDown, Shield, X } from 'lucide-react';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardHeading,
-  CardTitle,
-  CardToolbar,
-} from '@/components/ui/card';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { FormField, FormSection } from '@/components/ui/form-section';
 import {
   Select,
   SelectContent,
@@ -29,7 +22,6 @@ import AvatarUpload from '@/components/ui/avatar-upload';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useState } from 'react';
 
@@ -42,11 +34,8 @@ export function UserDialog({ open, onOpenChange }: UserDialogProps) {
   const [showAlert, setShowAlert] = useState(false);
 
   const handleSave = () => {
-    // Close the dialog
     onOpenChange(false);
-    // Show the success alert
     setShowAlert(true);
-    // Auto-hide the alert after 5 seconds
     setTimeout(() => setShowAlert(false), 5000);
   };
 
@@ -61,18 +50,14 @@ export function UserDialog({ open, onOpenChange }: UserDialogProps) {
             {/* Header */}
             <div className="flex justify-between items-center mb-8">
               <div className="flex flex-col gap-2">
-                <DialogTitle className="text-xl font-semibold text-[#111B37]">
-                  Usuario
-                </DialogTitle>
-                <p className="text-sm text-[#4B5675]">
-                  Ingresa los datos del nuevo usuario
-                </p>
+                <DialogTitle className="text-xl">Usuario</DialogTitle>
+                <p className="text-sm">Ingresa los datos del nuevo usuario</p>
               </div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => onOpenChange(false)}
-                className="h-8 px-3 text-xs font-medium text-[#4B5675] border-[#DBDFE9]"
+                className="h-8 px-3"
               >
                 Cerrar
               </Button>
@@ -80,312 +65,160 @@ export function UserDialog({ open, onOpenChange }: UserDialogProps) {
 
             <div className="space-y-8">
               {/* Personal Information */}
-              <Card className="shadow-sm">
-                <CardHeader>
-                  <CardHeading>
-                    <CardTitle className="px-4">
-                      Información de usuario
-                    </CardTitle>
-                  </CardHeading>
-                  <CardToolbar>
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-sm text-[#4B5675]">
-                        Perfil público
-                      </span>
-                      <Switch defaultChecked />
-                    </div>
-                  </CardToolbar>
-                </CardHeader>
-
-                <CardContent className="px-2 py-4">
-                  <div>
-                    {/* Photo */}
-                    <div className="flex items-center gap-10 px-8 py-2.5">
-                      <div className="w-[220px]">
-                        <Label className="text-sm font-normal text-[#27314B]">
-                          Foto
-                        </Label>
-                      </div>
-                      <div className="flex-1 flex items-center justify-between">
-                        <p className="text-xs text-[#4B5675]">
-                          Formato: JPEG o PNG / Peso: 10MB
-                        </p>
-                        <AvatarUpload />
-                      </div>
-                    </div>
-
-                    {/* First Name */}
-                    <div className="flex items-center gap-10 px-8 py-2.5">
-                      <div className="w-[220px]">
-                        <Label className="text-sm font-normal text-[#27314B]">
-                          Primer Nombre
-                        </Label>
-                      </div>
-                      <div className="flex-1">
-                        <Input
-                          placeholder="Ingresa el primer nombre"
-                          className="h-10 border-[#E2E4ED] bg-white shadow-sm"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Second Name */}
-                    <div className="flex items-center gap-10 px-8 py-2.5">
-                      <div className="w-[220px]">
-                        <Label className="text-sm font-normal text-[#27314B]">
-                          Segundo Nombre
-                        </Label>
-                      </div>
-                      <div className="flex-1">
-                        <Input
-                          placeholder="Ingresa el segundo nombre"
-                          className="h-10 border-[#E2E4ED] bg-white shadow-sm"
-                        />
-                      </div>
-                    </div>
-
-                    {/* First Last Name */}
-                    <div className="flex items-center gap-10 px-8 py-2.5">
-                      <div className="w-[220px]">
-                        <Label className="text-sm font-normal text-[#27314B]">
-                          Primer Apellido
-                        </Label>
-                      </div>
-                      <div className="flex-1">
-                        <Input
-                          placeholder="Ingresa el primer apellido"
-                          className="h-10 border-[#E2E4ED] bg-white shadow-sm"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Second Last Name */}
-                    <div className="flex items-center gap-10 px-8 py-2.5">
-                      <div className="w-[220px]">
-                        <Label className="text-sm font-normal text-[#27314B]">
-                          Segundo Apellido
-                        </Label>
-                      </div>
-                      <div className="flex-1">
-                        <Input
-                          placeholder="Ingresa el segundo apellido"
-                          className="h-10 border-[#E2E4ED] bg-white shadow-sm"
-                        />
-                      </div>
-                    </div>
-
-                    {/* ID Type */}
-                    <div className="flex items-center gap-10 px-8 py-2.5">
-                      <div className="w-[220px]">
-                        <Label className="text-sm font-normal text-[#27314B]">
-                          Tipo de identificación
-                        </Label>
-                      </div>
-                      <div className="flex-1">
-                        <Select>
-                          <SelectTrigger className="h-10 border-[#E2E4ED] bg-white shadow-sm">
-                            <SelectValue placeholder="Selecciona el tipo de identificación" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="cedula">Cédula</SelectItem>
-                            <SelectItem value="pasaporte">Pasaporte</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    {/* ID Number */}
-                    <div className="flex items-center gap-10 px-8 py-2.5">
-                      <div className="w-[220px]">
-                        <Label className="text-sm font-normal text-[#27314B]">
-                          Número de identificación
-                        </Label>
-                      </div>
-                      <div className="flex-1">
-                        <Input
-                          placeholder="Ingresa el número de identificación"
-                          className="h-10 border-[#E2E4ED] bg-white shadow-sm"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Nationality */}
-                    <div className="flex items-center gap-10 px-8 py-2.5">
-                      <div className="w-[220px]">
-                        <Label className="text-sm font-normal text-[#27314B]">
-                          Nacionalidad
-                        </Label>
-                      </div>
-                      <div className="flex-1">
-                        <Select>
-                          <SelectTrigger className="h-10 border-[#E2E4ED] bg-white shadow-sm">
-                            <SelectValue placeholder="Selecciona la nacionalidad" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="ecuador">Ecuador</SelectItem>
-                            <SelectItem value="colombia">Colombia</SelectItem>
-                            <SelectItem value="peru">Perú</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    {/* Birth Date */}
-                    <div className="flex items-center gap-10 px-8 py-2.5">
-                      <div className="w-[220px]">
-                        <Label className="text-sm font-normal text-[#27314B]">
-                          Fecha de nacimiento
-                        </Label>
-                      </div>
-                      <div className="flex-1">
-                        <div className="relative">
-                          <Input
-                            placeholder="DD/MM/YYYY"
-                            className="h-10 border-[#E2E4ED] bg-white shadow-sm pl-10"
-                          />
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#78829D]" />
-                        </div>
-                      </div>
-                    </div>
+              <FormSection
+                title="Información de usuario"
+                toolbar={
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-sm">Perfil público</span>
+                    <Switch defaultChecked />
                   </div>
-                </CardContent>
-              </Card>
+                }
+              >
+                <FormField label="Foto">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs">Formato: JPEG o PNG / Peso: 10MB</p>
+                    <AvatarUpload />
+                  </div>
+                </FormField>
+
+                <FormField label="Primer Nombre">
+                  <Input
+                    placeholder="Ingresa el primer nombre"
+                    className="h-10"
+                  />
+                </FormField>
+
+                <FormField label="Segundo Nombre">
+                  <Input
+                    placeholder="Ingresa el segundo nombre"
+                    className="h-10"
+                  />
+                </FormField>
+
+                <FormField label="Primer Apellido">
+                  <Input
+                    placeholder="Ingresa el primer apellido"
+                    className="h-10"
+                  />
+                </FormField>
+
+                <FormField label="Segundo Apellido">
+                  <Input
+                    placeholder="Ingresa el segundo apellido"
+                    className="h-10"
+                  />
+                </FormField>
+
+                <FormField label="Tipo de identificación">
+                  <Select>
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Selecciona el tipo de identificación" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cedula">Cédula</SelectItem>
+                      <SelectItem value="pasaporte">Pasaporte</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormField>
+
+                <FormField label="Número de identificación">
+                  <Input
+                    placeholder="Ingresa el número de identificación"
+                    className="h-10"
+                  />
+                </FormField>
+
+                <FormField label="Nacionalidad">
+                  <Select>
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Selecciona la nacionalidad" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ecuador">Ecuador</SelectItem>
+                      <SelectItem value="colombia">Colombia</SelectItem>
+                      <SelectItem value="peru">Perú</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormField>
+
+                <FormField label="Fecha de nacimiento">
+                  <div className="relative">
+                    <Input placeholder="DD/MM/YYYY" className="h-10 pl-10" />
+                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" />
+                  </div>
+                </FormField>
+              </FormSection>
 
               {/* Contact Information */}
-              <Card className="shadow-sm">
-                <CardHeader>
-                  <CardHeading>
-                    <CardTitle className="px-4">
-                      Información de Contacto
-                    </CardTitle>
-                  </CardHeading>
-                </CardHeader>
-                <CardContent className="px-2 py-4">
-                  <div>
-                    {/* Mobile Phone */}
-                    <div className="flex items-center gap-10 px-8 py-2.5">
-                      <div className="w-[220px]">
-                        <Label className="text-sm font-normal text-[#27314B]">
-                          Telefono móvil
-                        </Label>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex">
-                          <div className="flex items-center gap-2 px-3 py-2 bg-[#F9F9F9] border border-[#DBDFE9] border-r-0 rounded-l-md">
-                            <img
-                              src="/media/flags/ecuador.svg"
-                              alt="Ecuador"
-                              className="w-4 h-4 object-cover rounded-full"
-                            />
-                            <span className="text-xs text-[#4B5675]">
-                              EC (+593)
-                            </span>
-                            <ChevronDown className="w-4 h-4 text-[#78829D]" />
-                          </div>
-                          <Input
-                            placeholder="Ej: 99876 6265"
-                            className="flex-1 h-10 border-[#E2E4ED] bg-white rounded-l-none shadow-sm"
-                          />
-                        </div>
-                      </div>
+              <FormSection title="Información de Contacto">
+                <FormField label="Telefono móvil">
+                  <div className="flex">
+                    <div className="flex items-center gap-2 px-3 py-2 border border-r-0 rounded-l-md">
+                      <img
+                        src="/media/flags/ecuador.svg"
+                        alt="Ecuador"
+                        className="w-4 h-4 object-cover rounded-full"
+                      />
+                      <span className="text-xs">EC (+593)</span>
+                      <ChevronDown className="w-4 h-4" />
                     </div>
-
-                    {/* Landline Phone */}
-                    <div className="flex items-center gap-10 px-8 py-2.5">
-                      <div className="w-[220px]">
-                        <Label className="text-sm font-normal text-[#27314B]">
-                          Telefono fijo
-                        </Label>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex">
-                          <div className="flex items-center gap-2 px-3 py-2 bg-[#F9F9F9] border border-[#DBDFE9] border-r-0 rounded-l-md">
-                            <img
-                              src="/media/flags/ecuador.svg"
-                              alt="Ecuador"
-                              className="w-4 h-4 object-cover rounded-full"
-                            />
-                            <span className="text-xs text-[#4B5675]">
-                              EC (+593)
-                            </span>
-                            <ChevronDown className="w-4 h-4 text-[#78829D]" />
-                          </div>
-                          <Input
-                            placeholder="Ej: 22524 226"
-                            className="flex-1 h-10 border-[#E2E4ED] bg-white rounded-l-none shadow-sm"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Email */}
-                    <div className="flex items-center gap-10 px-8 py-2.5">
-                      <div className="w-[220px]">
-                        <Label className="text-sm font-normal text-[#27314B]">
-                          Correo electrónico
-                        </Label>
-                      </div>
-                      <div className="flex-1">
-                        <Input
-                          placeholder="Ingresa correo electrónico"
-                          className="h-10 border-[#E2E4ED] bg-white shadow-sm"
-                        />
-                      </div>
-                    </div>
+                    <Input
+                      placeholder="Ej: 99876 6265"
+                      className="flex-1 h-10  bg-white rounded-l-none shadow-sm"
+                    />
                   </div>
-                </CardContent>
-              </Card>
+                </FormField>
+
+                <FormField label="Telefono fijo">
+                  <div className="flex">
+                    <div className="flex items-center gap-2 px-3 py-2 border border-r-0 rounded-l-md">
+                      <img
+                        src="/media/flags/ecuador.svg"
+                        alt="Ecuador"
+                        className="w-4 h-4 object-cover rounded-full"
+                      />
+                      <span className="text-xs ">EC (+593)</span>
+                      <ChevronDown className="w-4 h-4" />
+                    </div>
+                    <Input
+                      placeholder="Ej: 22524 226"
+                      className="flex-1 h-10  bg-white rounded-l-none shadow-sm"
+                    />
+                  </div>
+                </FormField>
+
+                <FormField label="Correo electrónico">
+                  <Input
+                    placeholder="Ingresa correo electrónico"
+                    className="h-10"
+                  />
+                </FormField>
+              </FormSection>
 
               {/* Role Information */}
-              <Card className="shadow-sm">
-                <CardHeader>
-                  <CardHeading>
-                    <CardTitle className="px-4">Rol </CardTitle>
-                  </CardHeading>
-                </CardHeader>
-
-                <CardContent className="px-2 py-4">
-                  <div>
-                    {/* Resident Role */}
-                    <div className="flex items-center gap-10 px-8 py-2.5">
-                      <div className="w-[220px]">
-                        <Label className="text-sm font-normal text-[#27314B]">
-                          Residente
-                        </Label>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex gap-2">
-                          <Badge className="bg-[#F0F1F6] text-[#4B5675] px-2 py-1 text-sm font-medium">
-                            Propietario
-                          </Badge>
-                          <Badge className="bg-[#F0F1F6] text-[#4B5675] px-2 py-1 text-sm font-medium">
-                            Inquilino
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Administration Role */}
-                    <div className="flex items-center gap-10 px-8 py-2.5">
-                      <div className="w-[220px]">
-                        <Label className="text-sm font-normal text-[#27314B]">
-                          Administración
-                        </Label>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex gap-2">
-                          <Badge className="bg-[#F0F1F6] text-[#4B5675] px-2 py-1 text-sm font-medium">
-                            Administrador
-                          </Badge>
-                          <Badge className="bg-[#F0F1F6] text-[#4B5675] px-2 py-1 text-sm font-medium">
-                            Comite
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
+              <FormSection title="Rol">
+                <FormField label="Residente">
+                  <div className="flex gap-2">
+                    <Badge className="bg-[#F0F1F6]  px-2 py-1 text-sm font-medium">
+                      Propietario
+                    </Badge>
+                    <Badge className="bg-[#F0F1F6]  px-2 py-1 text-sm font-medium">
+                      Inquilino
+                    </Badge>
                   </div>
-                </CardContent>
-              </Card>
+                </FormField>
+
+                <FormField label="Administración">
+                  <div className="flex gap-2">
+                    <Badge className="bg-[#F0F1F6]  px-2 py-1 text-sm font-medium">
+                      Administrador
+                    </Badge>
+                    <Badge className="bg-[#F0F1F6]  px-2 py-1 text-sm font-medium">
+                      Comite
+                    </Badge>
+                  </div>
+                </FormField>
+              </FormSection>
             </div>
 
             {/* Footer Actions */}
@@ -394,7 +227,7 @@ export function UserDialog({ open, onOpenChange }: UserDialogProps) {
                 variant="outline"
                 size="lg"
                 onClick={() => onOpenChange(false)}
-                className="h-10 px-4 text-sm font-medium text-[#4B5675] border-[#E2E4ED] bg-white"
+                className="h-10 px-4 text-sm font-medium   bg-white"
               >
                 Cancelar
               </Button>
@@ -421,7 +254,7 @@ export function UserDialog({ open, onOpenChange }: UserDialogProps) {
               <AlertTitle className="text-[#27314B] font-semibold text-[15px] leading-tight">
                 ¡Usuario creado con éxito!
               </AlertTitle>
-              <AlertDescription className="text-[#78829D] text-sm font-medium mt-1">
+              <AlertDescription className=" text-sm font-medium mt-1">
                 El perfil del usuario se registró correctamente.
               </AlertDescription>
             </AlertContent>
