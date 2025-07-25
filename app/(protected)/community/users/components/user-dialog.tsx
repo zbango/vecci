@@ -7,9 +7,15 @@ import {
   AlertIcon,
   AlertTitle,
 } from '@/components/ui/alert';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Calendar, Camera, ChevronDown, Shield, X } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Calendar, ChevronDown, Shield, X } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardHeading,
+  CardTitle,
+  CardToolbar,
+} from '@/components/ui/card';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import {
   Select,
@@ -19,6 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+import AvatarUpload from '@/components/ui/avatar-upload';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,7 +53,10 @@ export function UserDialog({ open, onOpenChange }: UserDialogProps) {
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[1000px] max-h-[90vh] overflow-y-auto p-0">
+        <DialogContent
+          className="max-w-[1000px] max-h-[90vh] overflow-y-auto p-0"
+          close={false}
+        >
           <div className="p-10">
             {/* Header */}
             <div className="flex justify-between items-center mb-8">
@@ -70,43 +80,37 @@ export function UserDialog({ open, onOpenChange }: UserDialogProps) {
 
             <div className="space-y-8">
               {/* Personal Information */}
-              <Card className="border-[#E2E4ED] shadow-sm">
-                <CardHeader className="border-b border-[#E2E4ED] py-5 px-8">
-                  <div className="flex justify-between items-center">
-                    <CardTitle className="text-base font-semibold text-[#111B37]">
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardHeading>
+                    <CardTitle className="px-4">
                       Información de usuario
                     </CardTitle>
+                  </CardHeading>
+                  <CardToolbar>
                     <div className="flex items-center gap-2.5">
                       <span className="text-sm text-[#4B5675]">
                         Perfil público
                       </span>
                       <Switch defaultChecked />
                     </div>
-                  </div>
+                  </CardToolbar>
                 </CardHeader>
-                <CardContent className="p-0">
-                  <div className="space-y-0">
-                    {/* Photo Section */}
+
+                <CardContent className="px-2 py-4">
+                  <div>
+                    {/* Photo */}
                     <div className="flex items-center gap-10 px-8 py-2.5">
                       <div className="w-[220px]">
                         <Label className="text-sm font-normal text-[#27314B]">
                           Foto
                         </Label>
-                        <p className="text-xs text-[#4B5675] mt-1">
+                      </div>
+                      <div className="flex-1 flex items-center justify-between">
+                        <p className="text-xs text-[#4B5675]">
                           Formato: JPEG o PNG / Peso: 10MB
                         </p>
-                      </div>
-                      <div className="relative flex-1 flex justify-end">
-                        <div className="relative">
-                          <Avatar className="w-15 h-15 bg-[#F0F1F6]">
-                            <AvatarFallback className="text-lg font-medium text-[#4B5675] bg-[#F0F1F6]">
-                              A
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="absolute -bottom-2 -right-2 w-5 h-5 bg-black/30 rounded-full flex items-center justify-center">
-                            <Camera className="w-3.5 h-3.5 text-white" />
-                          </div>
-                        </div>
+                        <AvatarUpload />
                       </div>
                     </div>
 
@@ -248,14 +252,16 @@ export function UserDialog({ open, onOpenChange }: UserDialogProps) {
               </Card>
 
               {/* Contact Information */}
-              <Card className="border-[#E2E4ED] shadow-sm">
-                <CardHeader className="border-b border-[#E2E4ED] py-5 px-8">
-                  <CardTitle className="text-base font-semibold text-[#111B37]">
-                    Información de Contacto
-                  </CardTitle>
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardHeading>
+                    <CardTitle className="px-4">
+                      Información de Contacto
+                    </CardTitle>
+                  </CardHeading>
                 </CardHeader>
-                <CardContent className="p-0">
-                  <div className="space-y-0">
+                <CardContent className="px-2 py-4">
+                  <div>
                     {/* Mobile Phone */}
                     <div className="flex items-center gap-10 px-8 py-2.5">
                       <div className="w-[220px]">
@@ -266,7 +272,11 @@ export function UserDialog({ open, onOpenChange }: UserDialogProps) {
                       <div className="flex-1">
                         <div className="flex">
                           <div className="flex items-center gap-2 px-3 py-2 bg-[#F9F9F9] border border-[#DBDFE9] border-r-0 rounded-l-md">
-                            <div className="w-4 h-4 bg-red-500 rounded-full" />
+                            <img
+                              src="/media/flags/ecuador.svg"
+                              alt="Ecuador"
+                              className="w-4 h-4 object-cover rounded-full"
+                            />
                             <span className="text-xs text-[#4B5675]">
                               EC (+593)
                             </span>
@@ -290,7 +300,11 @@ export function UserDialog({ open, onOpenChange }: UserDialogProps) {
                       <div className="flex-1">
                         <div className="flex">
                           <div className="flex items-center gap-2 px-3 py-2 bg-[#F9F9F9] border border-[#DBDFE9] border-r-0 rounded-l-md">
-                            <div className="w-4 h-4 bg-red-500 rounded-full" />
+                            <img
+                              src="/media/flags/ecuador.svg"
+                              alt="Ecuador"
+                              className="w-4 h-4 object-cover rounded-full"
+                            />
                             <span className="text-xs text-[#4B5675]">
                               EC (+593)
                             </span>
@@ -323,14 +337,15 @@ export function UserDialog({ open, onOpenChange }: UserDialogProps) {
               </Card>
 
               {/* Role Information */}
-              <Card className="border-[#E2E4ED] shadow-sm">
-                <CardHeader className="border-b border-[#E2E4ED] py-5 px-8">
-                  <CardTitle className="text-base font-semibold text-[#111B37]">
-                    Rol
-                  </CardTitle>
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardHeading>
+                    <CardTitle className="px-4">Rol </CardTitle>
+                  </CardHeading>
                 </CardHeader>
-                <CardContent className="p-0">
-                  <div className="space-y-0">
+
+                <CardContent className="px-2 py-4">
+                  <div>
                     {/* Resident Role */}
                     <div className="flex items-center gap-10 px-8 py-2.5">
                       <div className="w-[220px]">
