@@ -24,6 +24,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  Column,
 } from '@tanstack/react-table';
 import { Input, InputWrapper } from '@/components/ui/input';
 import React, { useMemo, useState } from 'react';
@@ -162,13 +163,31 @@ export default function UsersPage() {
     { id: 'name', desc: true },
   ]);
 
+  const createCenteredHeader = (title: string) => {
+    const CenteredHeader = ({ column }: { column: Column<IUser, unknown> }) => (
+      <div className="flex justify-center w-full">
+        <DataGridColumnHeader title={title} column={column} />
+      </div>
+    );
+    CenteredHeader.displayName = 'CenteredHeader';
+    return CenteredHeader;
+  };
+
+  const CenteredWrapper = ({ children }: { children: React.ReactNode }) => (
+    <div className="flex justify-center w-full">
+      {children}
+    </div>
+  );
+
   const columns = useMemo<ColumnDef<IUser>[]>(
     () => [
       {
         accessorKey: 'name',
         id: 'name',
         header: ({ column }) => (
-          <DataGridColumnHeader title="Usuario" column={column} />
+          <div className="pl-13">
+            <DataGridColumnHeader title="Usuario" column={column} />
+          </div>
         ),
         cell: ({ row }) => {
           return (
@@ -200,7 +219,9 @@ export default function UsersPage() {
         accessorKey: 'contact',
         id: 'contact',
         header: ({ column }) => (
-          <DataGridColumnHeader title="Contacto" column={column} />
+          <div className="pl-3">
+            <DataGridColumnHeader title="Contacto" column={column} />
+          </div>
         ),
         cell: ({ row }) => (
           <div className="flex flex-col gap-2">
@@ -219,13 +240,13 @@ export default function UsersPage() {
       {
         accessorKey: 'units',
         id: 'units',
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Unidades" column={column} />
-        ),
+        header: createCenteredHeader('Unidades'),
         cell: ({ row }) => (
-          <span className="text-sm font-medium text-[#111B37]">
-            {row.original.units}
-          </span>
+          <CenteredWrapper>
+            <span className="text-sm font-medium text-[#111B37]">
+              {row.original.units}
+            </span>
+          </CenteredWrapper>
         ),
         size: 130,
         enableSorting: true,
@@ -234,27 +255,27 @@ export default function UsersPage() {
       {
         accessorKey: 'resident',
         id: 'resident',
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Residente" column={column} />
-        ),
+        header: createCenteredHeader('Residente'),
         cell: ({ row }) => {
           const isInquilino = row.original.resident === 'Inquilino';
           return (
-            <div
-              className={`px-1.5 py-1 rounded-full border ${
-                isInquilino
-                  ? 'bg-[#F0ECFF] border-[#4921EA]/20'
-                  : 'bg-[#E1FCE9] border-[#0BC33F]/20'
-              }`}
-            >
-              <span
-                className={`text-sm font-medium ${
-                  isInquilino ? 'text-[#4921EA]' : 'text-[#0BC33F]'
+            <CenteredWrapper>
+              <div
+                className={`px-1.5 py-1 rounded-full border w-24 text-center ${
+                  isInquilino
+                    ? 'bg-[#F0ECFF] border-[#4921EA]/20'
+                    : 'bg-[#E1FCE9] border-[#0BC33F]/20'
                 }`}
               >
-                {row.original.resident}
-              </span>
-            </div>
+                <span
+                  className={`text-sm font-medium ${
+                    isInquilino ? 'text-[#4921EA]' : 'text-[#0BC33F]'
+                  }`}
+                >
+                  {row.original.resident}
+                </span>
+              </div>
+            </CenteredWrapper>
           );
         },
         size: 130,
@@ -264,27 +285,27 @@ export default function UsersPage() {
       {
         accessorKey: 'admin',
         id: 'admin',
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Administrador" column={column} />
-        ),
+        header: createCenteredHeader('Administrador'),
         cell: ({ row }) => {
           const isAdmin = row.original.admin === 'Admin';
           return (
-            <div
-              className={`px-1.5 py-1 rounded-full border ${
-                isAdmin
-                  ? 'bg-[#E7F2FF] border-[#1379F0]/20'
-                  : 'bg-transparent border-transparent'
-              }`}
-            >
-              <span
-                className={`text-sm font-medium ${
-                  isAdmin ? 'text-[#1379F0]' : 'text-[#111B37]'
+            <CenteredWrapper>
+              <div
+                className={`px-1.5 py-1 rounded-full border w-20 text-center ${
+                  isAdmin
+                    ? 'bg-[#E7F2FF] border-[#1379F0]/20'
+                    : 'bg-transparent border-transparent'
                 }`}
               >
-                {row.original.admin}
-              </span>
-            </div>
+                <span
+                  className={`text-sm font-medium ${
+                    isAdmin ? 'text-[#1379F0]' : 'text-[#111B37]'
+                  }`}
+                >
+                  {row.original.admin}
+                </span>
+              </div>
+            </CenteredWrapper>
           );
         },
         size: 130,
@@ -295,12 +316,16 @@ export default function UsersPage() {
         accessorKey: 'actions',
         id: 'actions',
         header: () => (
-          <span className="text-sm font-normal text-[#4B5675]">Acciones</span>
+          <CenteredWrapper>
+            <span className="text-sm font-normal text-[#4B5675]">Acciones</span>
+          </CenteredWrapper>
         ),
         cell: () => (
-          <Button variant="ghost" size="sm" className="w-6 h-6 p-0">
-            <MoreVertical className="h-6 w-6 text-[#78829D]" />
-          </Button>
+          <CenteredWrapper>
+            <Button variant="ghost" size="sm" className="w-6 h-6 p-0">
+              <MoreVertical className="h-6 w-6 text-[#78829D]" />
+            </Button>
+          </CenteredWrapper>
         ),
         size: 130,
         enableSorting: false,
