@@ -163,11 +163,6 @@ export default function UsersPage() {
     { id: 'name', desc: true },
   ]);
 
-  // const commonColumnProps = {
-  //   enableSorting: true,
-  //   enableHiding: false,
-  // };
-
   const createCenteredHeader = (title: string) => {
     const CenteredHeader = ({ column }: { column: Column<IUser, unknown> }) => (
       <div className="flex justify-center w-full">
@@ -217,7 +212,8 @@ export default function UsersPage() {
           );
         },
         size: 290,
-        // ...commonColumnProps,
+        enableSorting: true,
+        enableHiding: false,
       },
       {
         accessorKey: 'contact',
@@ -238,7 +234,8 @@ export default function UsersPage() {
           </div>
         ),
         size: 290,
-        // ...commonColumnProps,
+        enableSorting: true,
+        enableHiding: false,
       },
       {
         accessorKey: 'units',
@@ -252,7 +249,8 @@ export default function UsersPage() {
           </CenteredWrapper>
         ),
         size: 130,
-        // ...commonColumnProps,
+        enableSorting: true,
+        enableHiding: false,
       },
       {
         accessorKey: 'resident',
@@ -281,7 +279,8 @@ export default function UsersPage() {
           );
         },
         size: 130,
-        // ...commonColumnProps,
+        enableSorting: true,
+        enableHiding: false,
       },
       {
         accessorKey: 'admin',
@@ -310,7 +309,8 @@ export default function UsersPage() {
           );
         },
         size: 130,
-        // ...commonColumnProps,
+        enableSorting: true,
+        enableHiding: false,
       },
       {
         accessorKey: 'actions',
