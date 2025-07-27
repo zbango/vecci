@@ -1,16 +1,19 @@
 import * as React from 'react';
+
 import { CSSProperties, Fragment, ReactNode } from 'react';
 import {
   Cell,
   Column,
-  flexRender,
   Header,
   HeaderGroup,
   Row,
+  flexRender,
 } from '@tanstack/react-table';
-import { cva } from 'class-variance-authority';
-import { cn } from '@/lib/utils';
+
 import { Checkbox } from '@/components/ui/checkbox';
+import { cn } from '@/lib/utils';
+import { cva } from 'class-variance-authority';
+import { toAbsoluteUrl } from '@/lib/helpers';
 import { useDataGrid } from '@/components/ui/data-grid';
 
 const headerCellSpacingVariants = cva('', {
@@ -399,9 +402,12 @@ function DataGridTableEmpty() {
     <tr>
       <td
         colSpan={totalColumns}
-        className="text-center text-muted-foreground py-6"
+        className="text-muted-foreground py-6 text-center"
       >
-        {props.emptyMessage || 'No data available'}
+        <div className="flex flex-col items-center gap-4">
+          <img src={toAbsoluteUrl('/media/ui/empty-table.svg')} alt="" />
+          <span>{props.emptyMessage || 'No data available'}</span>
+        </div>
       </td>
     </tr>
   );

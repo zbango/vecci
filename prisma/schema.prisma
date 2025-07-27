@@ -36,6 +36,7 @@ model User {
   systemLog       SystemLog[]
   accounts        Account[]
   Session         Session[]
+  createdCommunityUsers CommunityUser[] @relation("CommunityUserCreatedBy")
 
   // Indexes for efficient querying
   @@index([invitedByUserId])
@@ -167,4 +168,38 @@ model SystemSetting {
   notifySystemErrorFailureEmail  Boolean  @default(true)
   notifySystemErrorWeb           Boolean  @default(true)
   notifySystemErrorRoleIds       String[]
+}
+
+// Community Module
+model CommunityUser {
+  id                 String   @id @default(uuid())
+  isPublic           Boolean  @default(false)
+  email              String
+  avatar             String?
+  firstName          String
+  secondName         String?
+  firstLastName      String
+  secondLastName     String?
+  nationality        String
+  identificationType String
+  identificationNumber String
+  birthDate          DateTime
+  mobilePhone        String
+  homePhone          String?
+  residentRole       String?
+  adminRole          String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  isTrashed          Boolean  @default(false)
+  createdByUserId    String?
+  isProtected        Boolean  @default(false)
+
+  // Relations
+  createdByUser      User?    @relation("CommunityUserCreatedBy", fields: [createdByUserId], references: [id])
+
+  // Indexes for efficient querying
+  @@index([identificationNumber])
+  @@index([email])
+  @@index([residentRole])
+  @@index([adminRole])
 }

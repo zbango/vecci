@@ -2,7 +2,11 @@
 
 import { TriangleAlert, User, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useFileUpload, type FileWithPreview } from '@/hooks/use-file-upload';
+import {
+  formatBytes,
+  useFileUpload,
+  type FileWithPreview,
+} from '@/hooks/use-file-upload';
 import {
   Alert,
   AlertContent,
@@ -20,7 +24,7 @@ interface AvatarUploadProps {
 }
 
 export default function AvatarUpload({
-  maxSize = 2 * 1024 * 1024, // 2MB
+  maxSize = 10 * 1024 * 1024, // 10MB
   className,
   onFileChange,
   defaultAvatar,
@@ -100,6 +104,16 @@ export default function AvatarUpload({
             <X className="size-3.5" />
           </Button>
         )}
+      </div>
+
+      {/* Upload Instructions */}
+      <div className="text-center space-y-0.5">
+        {/* <p className="text-sm font-medium">
+          {currentFile ? 'Foto subida' : 'Subir foto'}
+        </p> */}
+        <p className="text-xs text-muted-foreground">
+          Formato: JPEG o PNG / Peso: {formatBytes(maxSize)}
+        </p>
       </div>
 
       {/* Error Messages */}

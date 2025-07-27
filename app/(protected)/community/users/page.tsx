@@ -1,14 +1,17 @@
 'use client';
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import React, { useEffect, useMemo, useState, useTransition } from 'react';
 import {
-  Card,
-  CardFooter,
-  CardHeader,
-  CardTable,
-  CardTitle,
-  CardToolbar,
-} from '@/components/ui/card';
+  ColumnDef,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  PaginationState,
+  SortingState,
+  useReactTable,
+} from '@tanstack/react-table';
+import imageCompression from 'browser-image-compression';
 import {
   CloudUpload,
   Eye,
@@ -19,16 +22,21 @@ import {
   Trash,
   User2,
 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
-  ColumnDef,
-  PaginationState,
-  SortingState,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
+  Card,
+  CardFooter,
+  CardHeader,
+  CardTable,
+  CardTitle,
+  CardToolbar,
+} from '@/components/ui/card';
+import { DataGrid } from '@/components/ui/data-grid';
+import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
+import { DataGridColumnVisibility } from '@/components/ui/data-grid-column-visibility';
+import { DataGridPagination } from '@/components/ui/data-grid-pagination';
+import { DataGridTable } from '@/components/ui/data-grid-table';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,169 +45,66 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input, InputWrapper } from '@/components/ui/input';
-import React, { useMemo, useState } from 'react';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-
-import { Button } from '@/components/ui/button';
-import { DataGrid } from '@/components/ui/data-grid';
-import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
-import { DataGridColumnVisibility } from '@/components/ui/data-grid-column-visibility';
-import { DataGridPagination } from '@/components/ui/data-grid-pagination';
-import { DataGridTable } from '@/components/ui/data-grid-table';
 import { PageHeader } from '@/components/ui/page-header';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import {
+  createCommunityUser,
+  deleteCommunityUser,
+  getCommunityUsers,
+  updateCommunityUser,
+  type ICommunityUser,
+  type SearchParams,
+} from '@/app/actions/community-users';
 import { UserDialog } from './components/user-dialog';
-
-interface IUser {
-  id: string;
-  name: string;
-  avatar: string;
-  phone: string;
-  email: string;
-  units: number;
-  resident: string;
-  admin: string;
-}
-
-const users: IUser[] = [
-  {
-    id: '173594941-2',
-    name: 'Tyler Hero',
-    avatar: '/media/avatars/300-1.png',
-    phone: '+593 930 12 4567',
-    email: 'tyler.hero@gmail.com',
-    units: 2,
-    resident: 'Propietario',
-    admin: 'Admin',
-  },
-  {
-    id: '103594941-2',
-    name: 'Esther Howard',
-    avatar: '/media/avatars/300-2.png',
-    phone: '+593 981 45 2379',
-    email: 'esther.howard@gmail.com',
-    units: 1,
-    resident: 'Propietario',
-    admin: 'Admin',
-  },
-  {
-    id: '113594784-2',
-    name: 'Jacob Jones',
-    avatar: '/media/avatars/300-3.png',
-    phone: '+593 930 12 4567',
-    email: 'tyler.hero@gmail.com',
-    units: 2,
-    resident: 'Propietario',
-    admin: 'N/A',
-  },
-  {
-    id: '160033140-7',
-    name: 'Cody Fisher',
-    avatar: '/media/avatars/300-4.png',
-    phone: '+593 991 78 6032',
-    email: 'cody.fisher@gmail.com',
-    units: 1,
-    resident: 'Propietario',
-    admin: 'N/A',
-  },
-  {
-    id: '183519941-1',
-    name: 'Leslie Alexander',
-    avatar: '/media/avatars/300-5.png',
-    phone: '+593 987 20 4581',
-    email: 'leslie.alexander@gmail.com',
-    units: 1,
-    resident: 'Propietario',
-    admin: 'N/A',
-  },
-  {
-    id: '113594784-2',
-    name: 'Robert Fox',
-    avatar: '/media/avatars/300-6.png',
-    phone: '+593 995 10 3344',
-    email: 'robert.fox@gmail.com',
-    units: 1,
-    resident: 'Inquilino',
-    admin: 'N/A',
-  },
-  {
-    id: '87654321',
-    name: 'Guy Hawkins',
-    avatar: '/media/avatars/300-7.png',
-    phone: '+593 972 66 8820',
-    email: 'guy.hawkins@gmail.com',
-    units: 2,
-    resident: 'Propietario',
-    admin: 'N/A',
-  },
-  {
-    id: 'ZX654321',
-    name: 'Theresa Webb',
-    avatar: '/media/avatars/300-8.png',
-    phone: '+593 989 77 1903',
-    email: 'theresa.webb@gmail.com',
-    units: 1,
-    resident: 'Propietario',
-    admin: 'N/A',
-  },
-  {
-    id: '160033140-7',
-    name: 'Marvin McKinney',
-    avatar: '/media/avatars/300-9.png',
-    phone: '+593 960 05 6612',
-    email: 'marvin.mckenney@gmail.com',
-    units: 1,
-    resident: 'Inquilino',
-    admin: 'N/A',
-  },
-  {
-    id: '172534659-7',
-    name: 'Ronald Richards',
-    avatar: '/media/avatars/300-10.png',
-    phone: '+593 976 84 9901',
-    email: 'ronald.richards@gmail.com',
-    units: 1,
-    resident: 'Propietario',
-    admin: 'N/A',
-  },
-];
 
 export default function UsersPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 5,
   });
   const [sorting, setSorting] = useState<SortingState>([
-    { id: 'name', desc: true },
+    { id: 'firstName', desc: false },
   ]);
+  const [isPending, startTransition] = useTransition();
 
-  const columns = useMemo<ColumnDef<IUser>[]>(
+  // Fetch data using server action
+  const [data, setData] = useState<{
+    users: ICommunityUser[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  } | null>(null);
+
+  // Use actual data for now, can add optimistic updates later
+  const displayUsers = data?.users || [];
+
+  const columns = useMemo<ColumnDef<ICommunityUser>[]>(
     () => [
       {
-        accessorKey: 'name',
-        id: 'name',
+        accessorFn: (row) => `${row.firstName} ${row.firstLastName}`,
+        id: 'firstName',
         header: ({ column }) => (
           <DataGridColumnHeader title="Usuario" column={column} />
         ),
         cell: ({ row }) => {
+          const fullName = `${row.original.firstName} ${row.original.firstLastName}`;
+          const initials = `${row.original.firstName[0]}${row.original.firstLastName[0]}`;
+
           return (
             <div className="flex items-center gap-2.5">
               <div className="w-10 h-10 rounded-full flex items-center justify-center">
                 <Avatar>
-                  <AvatarFallback>
-                    {row.original.name
-                      .split(' ')
-                      .map((n) => n[0])
-                      .join('')}
-                  </AvatarFallback>
+                  <AvatarImage src={row.original.avatar || ''} alt="" />
+                  <AvatarFallback>{initials}</AvatarFallback>
                 </Avatar>
               </div>
               <div className="flex flex-col gap-2">
-                <span className="text-sm font-medium'">
-                  {row.original.name}
-                </span>
+                <span className="text-sm font-medium">{fullName}</span>
                 <span className="text-sm font-normal">
-                  Cédula: {row.original.id}
+                  Cédula: {row.original.identificationNumber}
                 </span>
               </div>
             </div>
@@ -210,42 +115,24 @@ export default function UsersPage() {
         enableHiding: false,
       },
       {
-        accessorKey: 'contact',
+        accessorFn: (row) => row.mobilePhone,
         id: 'contact',
         header: ({ column }) => (
           <DataGridColumnHeader title="Contacto" column={column} />
         ),
         cell: ({ row }) => (
           <div className="flex flex-col gap-2">
-            <span className="text-sm">{row.original.phone}</span>
-            <span className="text-sm">{row.original.email}</span>
+            <span className="text-sm">{row.original.mobilePhone}</span>
+            <span className="text-sm">{row.original.homePhone || 'N/A'}</span>
           </div>
         ),
         size: 290,
         enableSorting: true,
         enableHiding: false,
       },
+
       {
-        accessorKey: 'units',
-        id: 'units',
-        header: ({ column }) => (
-          <DataGridColumnHeader
-            title="Unidades"
-            column={column}
-            className="flex justify-center w-full ml-0"
-          />
-        ),
-        cell: ({ row }) => (
-          <div className="flex justify-center w-full">
-            <span className="text-sm font-medium">{row.original.units}</span>
-          </div>
-        ),
-        size: 130,
-        enableSorting: true,
-        enableHiding: false,
-      },
-      {
-        accessorKey: 'resident',
+        accessorKey: 'residentRole',
         id: 'resident',
         header: ({ column }) => (
           <DataGridColumnHeader
@@ -255,7 +142,7 @@ export default function UsersPage() {
           />
         ),
         cell: ({ row }) => {
-          const isInquilino = row.original.resident === 'Inquilino';
+          const isInquilino = row.original.residentRole === 'Inquilino';
           return (
             <div className="flex justify-center w-full">
               <div
@@ -270,7 +157,7 @@ export default function UsersPage() {
                     isInquilino ? 'text-[#4921EA]' : 'text-[#0BC33F]'
                   }`}
                 >
-                  {row.original.resident}
+                  {row.original.residentRole}
                 </span>
               </div>
             </div>
@@ -281,7 +168,7 @@ export default function UsersPage() {
         enableHiding: false,
       },
       {
-        accessorKey: 'admin',
+        accessorKey: 'adminRole',
         id: 'admin',
         header: ({ column }) => (
           <DataGridColumnHeader
@@ -291,7 +178,7 @@ export default function UsersPage() {
           />
         ),
         cell: ({ row }) => {
-          const isAdmin = row.original.admin === 'Admin';
+          const isAdmin = row.original.adminRole === 'Admin';
           return (
             <div className="flex justify-center w-full">
               <div
@@ -302,7 +189,7 @@ export default function UsersPage() {
                 }`}
               >
                 <span className={`text-sm font-medium`}>
-                  {row.original.admin}
+                  {row.original.adminRole}
                 </span>
               </div>
             </div>
@@ -338,7 +225,10 @@ export default function UsersPage() {
                   Editar
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem variant="destructive">
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => handleDeleteUser(row.original.id)}
+                >
                   <Trash />
                   Eliminar
                 </DropdownMenuItem>
@@ -356,9 +246,9 @@ export default function UsersPage() {
 
   const table = useReactTable({
     columns,
-    data: users,
-    pageCount: Math.ceil((users?.length || 0) / pagination.pageSize),
-    getRowId: (row: IUser) => row.id,
+    data: displayUsers,
+    pageCount: data?.totalPages || 0,
+    getRowId: (row: ICommunityUser) => row.id,
     state: {
       pagination,
       sorting,
@@ -370,7 +260,127 @@ export default function UsersPage() {
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    manualPagination: true,
+    manualSorting: true,
+    enableSorting: true,
   });
+
+  const initialValues: ICommunityUser = {
+    id: '',
+    isPublic: false,
+    avatar: '',
+    firstName: '',
+    secondName: '',
+    firstLastName: '',
+    secondLastName: '',
+    nationality: 'Ecuatoriano',
+    identificationType: 'Cédula',
+    identificationNumber: '',
+    birthDate: new Date(),
+    mobilePhone: '',
+    homePhone: '',
+    residentRole: 'Propietario',
+    adminRole: 'Usuario',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    isTrashed: false,
+    isProtected: false,
+    createdByUserId: '',
+    email: '',
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const params: SearchParams = {
+        page: pagination.pageIndex + 1,
+        limit: pagination.pageSize,
+        query: searchQuery,
+        sort: sorting[0]?.id,
+        dir: sorting[0]?.desc ? 'desc' : 'asc',
+      };
+
+      const result = await getCommunityUsers(params);
+      setData(result);
+    };
+
+    startTransition(() => {
+      fetchData();
+    });
+  }, [pagination.pageIndex, pagination.pageSize, searchQuery, sorting]);
+
+  // Handle search
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+    setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
+  };
+
+  // Handle save user (create or update)
+  const handleSaveUser = async (
+    userData: ICommunityUser & { avatarFile?: File },
+  ) => {
+    try {
+      // Convert object to FormData
+      const formData = new FormData();
+      formData.append('email', userData.email);
+      formData.append('firstName', userData.firstName);
+      formData.append('secondName', userData.secondName || '');
+      formData.append('firstLastName', userData.firstLastName);
+      formData.append('secondLastName', userData.secondLastName || '');
+      formData.append('nationality', userData.nationality);
+      formData.append('identificationType', userData.identificationType);
+      formData.append('identificationNumber', userData.identificationNumber);
+      formData.append('birthDate', userData.birthDate.toISOString());
+      formData.append('mobilePhone', userData.mobilePhone);
+      formData.append('homePhone', userData.homePhone || '');
+      formData.append('residentRole', userData.residentRole || '');
+      formData.append('adminRole', userData.adminRole);
+
+      // Handle avatar file if provided
+      if (userData.avatarFile) {
+        try {
+          userData.avatarFile = await imageCompression(userData.avatarFile, {
+            maxSizeMB: 10,
+          });
+        } catch (error) {
+          console.error(error);
+        }
+
+        formData.append('avatarFile', userData.avatarFile);
+      }
+
+      if (userData.id) {
+        await updateCommunityUser(userData.id, formData);
+      } else {
+        await createCommunityUser(formData);
+      }
+
+      // Refresh data
+      const params: SearchParams = {
+        page: pagination.pageIndex + 1,
+        limit: pagination.pageSize,
+        query: searchQuery,
+        sort: sorting[0]?.id,
+        dir: sorting[0]?.desc ? 'desc' : 'asc',
+      };
+      const result = await getCommunityUsers(params);
+      setData(result);
+
+      setDialogOpen(false);
+    } catch (error) {
+      console.error('Error saving user:', error);
+      throw error; // Re-throw to let the dialog handle the error display
+    }
+  };
+
+  // Handle delete user
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      await deleteCommunityUser(userId);
+      // Data will be revalidated automatically
+    } catch (error) {
+      console.error('Error deleting user:', error);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-8 px-5 py-8 max-w-[1200px] mx-auto">
@@ -400,10 +410,19 @@ export default function UsersPage() {
         }
       />
 
-      <DataGrid table={table} recordCount={users?.length || 0}>
+      <DataGrid
+        table={table}
+        recordCount={data?.total || 0}
+        emptyMessage="Aún no se han registrado usuarios."
+        isLoading={isPending}
+      >
         <Card>
           <CardHeader className="py-3">
-            <CardTitle>Mostrando 10 de 100 usuarios</CardTitle>
+            <CardTitle>
+              {isPending
+                ? 'Cargando...'
+                : `Mostrando ${data?.users?.length || 0} de ${data?.total || 0} usuarios`}
+            </CardTitle>
             <CardToolbar>
               <InputWrapper>
                 <Button
@@ -414,7 +433,12 @@ export default function UsersPage() {
                 >
                   <Search />
                 </Button>
-                <Input type="text" placeholder="Buscar Usuario" />
+                <Input
+                  type="text"
+                  placeholder="Buscar Usuario"
+                  value={searchQuery}
+                  onChange={(e) => handleSearch(e.target.value)}
+                />
               </InputWrapper>
               <DataGridColumnVisibility
                 table={table}
@@ -439,7 +463,12 @@ export default function UsersPage() {
         </Card>
       </DataGrid>
 
-      <UserDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+      <UserDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        initialValues={initialValues}
+        onSave={handleSaveUser}
+      />
     </div>
   );
 }

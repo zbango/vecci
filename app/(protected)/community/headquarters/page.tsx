@@ -157,7 +157,7 @@ export default function HeadquartersPage() {
         header: () => <span className="text-sm font-normal">Acciones</span>,
         cell: () => (
           <Button variant="ghost" size="sm" className="w-6 h-6 p-0">
-            <MoreVertical className="h-6 w-6 text-[#78829D]" />
+            <MoreVertical className="h-6 w-6 " />
           </Button>
         ),
         size: 130,

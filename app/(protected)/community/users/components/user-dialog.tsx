@@ -1,47 +1,24 @@
 'use client';
 
-import {
-  Alert,
-  AlertContent,
-  AlertDescription,
-  AlertIcon,
-  AlertTitle,
-} from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { FormField, FormSection } from '@/components/ui/form-section';
-import { Input, InputAddon, InputGroup } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
-import AvatarUpload from '@/components/ui/avatar-upload';
 import { Button } from '@/components/ui/button';
-import { Calendar } from 'lucide-react';
-import { NATIONALITIES } from '@/config/constants';
-import { RiShieldCrossLine } from '@remixicon/react';
-import { Switch } from '@/components/ui/switch';
-import { useState } from 'react';
+import { ICommunityUser } from '@/app/actions/community-users';
+import { UserForm } from './user-form';
 
 interface UserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialValues: ICommunityUser;
+  onSave: (userData: ICommunityUser) => Promise<void>;
 }
 
-export function UserDialog({ open, onOpenChange }: UserDialogProps) {
-  const [showAlert, setShowAlert] = useState(false);
-  const [resident, setResident] = useState('');
-  const [admin, setAdmin] = useState('');
-  const handleSave = () => {
-    onOpenChange(false);
-    setShowAlert(true);
-    setTimeout(() => setShowAlert(false), 5000);
-  };
-
+export function UserDialog({
+  open,
+  onOpenChange,
+  initialValues,
+  onSave,
+}: UserDialogProps) {
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -65,229 +42,14 @@ export function UserDialog({ open, onOpenChange }: UserDialogProps) {
                 Cerrar
               </Button>
             </div>
-
-            <div className="space-y-8">
-              {/* Personal Information */}
-              <FormSection
-                title="Información de usuario"
-                toolbar={
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-sm">Perfil público</span>
-                    <Switch defaultChecked />
-                  </div>
-                }
-              >
-                <FormField label="Foto">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs">Formato: JPEG o PNG / Peso: 10MB</p>
-                    <AvatarUpload />
-                  </div>
-                </FormField>
-
-                <FormField label="Primer Nombre">
-                  <Input
-                    placeholder="Ingresa el primer nombre"
-                    className="h-10"
-                  />
-                </FormField>
-
-                <FormField label="Segundo Nombre">
-                  <Input
-                    placeholder="Ingresa el segundo nombre"
-                    className="h-10"
-                  />
-                </FormField>
-
-                <FormField label="Primer Apellido">
-                  <Input
-                    placeholder="Ingresa el primer apellido"
-                    className="h-10"
-                  />
-                </FormField>
-
-                <FormField label="Segundo Apellido">
-                  <Input
-                    placeholder="Ingresa el segundo apellido"
-                    className="h-10"
-                  />
-                </FormField>
-
-                <FormField label="Nacionalidad">
-                  <Select>
-                    <SelectTrigger className="h-10">
-                      <SelectValue placeholder="Selecciona la nacionalidad" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {NATIONALITIES.map((nationality) => (
-                        <SelectItem key={nationality} value={nationality}>
-                          {nationality}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormField>
-
-                <FormField label="Tipo de identificación">
-                  <Select>
-                    <SelectTrigger className="h-10">
-                      <SelectValue placeholder="Selecciona el tipo de identificación" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="cedula">Cédula</SelectItem>
-                      <SelectItem value="pasaporte">Pasaporte</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormField>
-
-                <FormField label="Número de identificación">
-                  <Input
-                    placeholder="Ingresa el número de identificación"
-                    className="h-10"
-                  />
-                </FormField>
-
-                <FormField label="Fecha de nacimiento">
-                  <InputGroup>
-                    <InputAddon mode="icon">
-                      <Calendar />
-                    </InputAddon>
-                    <Input placeholder="DD/MM/YYYY" />
-                  </InputGroup>
-                </FormField>
-              </FormSection>
-
-              {/* Contact Information */}
-              <FormSection title="Información de Contacto">
-                <FormField label="Telefono móvil">
-                  <div className="flex">
-                    <div className="flex items-center gap-2 px-3 py-2 border border-r-0 rounded-l-md">
-                      <img
-                        src="/media/flags/ecuador.svg"
-                        alt="Ecuador"
-                        className="w-4 h-4 object-cover rounded-full"
-                      />
-                      <span className="text-xs">EC (+593)</span>
-                    </div>
-                    <Input
-                      placeholder="Ej: 998766265"
-                      className="flex-1 h-10  bg-white rounded-l-none shadow-sm"
-                    />
-                  </div>
-                </FormField>
-
-                <FormField label="Telefono fijo">
-                  <div className="flex">
-                    <div className="flex items-center gap-2 px-3 py-2 border border-r-0 rounded-l-md">
-                      <img
-                        src="/media/flags/ecuador.svg"
-                        alt="Ecuador"
-                        className="w-4 h-4 object-cover rounded-full"
-                      />
-                      <span className="text-xs ">EC (+593)</span>
-                    </div>
-                    <Input
-                      placeholder="Ej: 22524226"
-                      className="flex-1 h-10  bg-white rounded-l-none shadow-sm"
-                    />
-                  </div>
-                </FormField>
-
-                <FormField label="Correo electrónico">
-                  <Input
-                    placeholder="Ingresa correo electrónico"
-                    className="h-10"
-                  />
-                </FormField>
-              </FormSection>
-
-              {/* Role Information */}
-              <FormSection title="Rol">
-                <FormField label="Residente">
-                  <ToggleGroup
-                    type="single"
-                    value={resident}
-                    onValueChange={(newValue) => {
-                      if (newValue) setResident(newValue);
-                    }}
-                  >
-                    <ToggleGroupItem
-                      value="propietario"
-                      className="cursor-pointer"
-                    >
-                      Propietario
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="inquilino"
-                      className="cursor-pointer"
-                    >
-                      Inquilino
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                </FormField>
-
-                <FormField label="Administración">
-                  <ToggleGroup
-                    type="single"
-                    value={admin}
-                    onValueChange={(newValue) => {
-                      if (newValue) setAdmin(newValue);
-                    }}
-                  >
-                    <ToggleGroupItem
-                      value="propietario"
-                      className="cursor-pointer"
-                    >
-                      Administrador
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="inquilino"
-                      className="cursor-pointer"
-                    >
-                      Comite
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                </FormField>
-              </FormSection>
-            </div>
-
-            {/* Footer Actions */}
-            <div className="flex justify-end gap-2.5 mt-8">
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => onOpenChange(false)}
-                className="h-10 px-4 text-sm font-medium   bg-white"
-              >
-                Cancelar
-              </Button>
-              <Button
-                size="lg"
-                onClick={handleSave}
-                className="h-10 px-4 text-sm font-medium bg-[#1379F0] text-white"
-              >
-                Guardar
-              </Button>
-            </div>
+            <UserForm
+              onSubmit={onSave}
+              onCancel={() => onOpenChange(false)}
+              initialValues={initialValues}
+            />
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Success Alert */}
-      {showAlert && (
-        <div className="fixed top-4 right-4 z-50 w-[400px]">
-          <Alert appearance="light" variant="success" close={true}>
-            <AlertIcon>
-              <RiShieldCrossLine />
-            </AlertIcon>
-            <AlertContent>
-              <AlertTitle>¡Usuario creado con éxito!</AlertTitle>
-              <AlertDescription>
-                El perfil del usuario se registró correctamente.
-              </AlertDescription>
-            </AlertContent>
-          </Alert>
-        </div>
-      )}
     </>
   );
 }
