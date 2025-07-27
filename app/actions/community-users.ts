@@ -116,7 +116,7 @@ export async function getCommunityUsers(params: SearchParams = {}) {
 export async function createCommunityUser(formData: FormData) {
   try {
     // Handle avatar upload if provided
-    let avatarUrl = '/media/avatars/300-1.png'; // Default avatar
+    let avatarUrl = ''; // Default avatar
     const avatarFile = formData.get('avatarFile') as File | null;
 
     if (avatarFile && avatarFile instanceof File && avatarFile.size > 0) {
@@ -139,7 +139,6 @@ export async function createCommunityUser(formData: FormData) {
       data: {
         email: formData.get('email') as string,
         isPublic: false,
-        avatar: avatarUrl,
         firstName: formData.get('firstName') as string,
         secondName: (formData.get('secondName') as string) || null,
         firstLastName: formData.get('firstLastName') as string,
@@ -153,6 +152,7 @@ export async function createCommunityUser(formData: FormData) {
         homePhone: (formData.get('homePhone') as string) || null,
         residentRole: (formData.get('residentRole') as string) || 'Propietario',
         adminRole: (formData.get('adminRole') as string) || 'Usuario',
+        ...(avatarUrl && { avatar: avatarUrl }),
       },
     });
 
@@ -173,7 +173,7 @@ export async function updateCommunityUser(id: string, formData: FormData) {
     });
 
     // Handle avatar upload if provided
-    let avatarUrl = currentUser?.avatar || '/media/avatars/300-1.png';
+    let avatarUrl = currentUser?.avatar || '';
     const avatarFile = formData.get('avatarFile') as File | null;
 
     if (avatarFile && avatarFile instanceof File && avatarFile.size > 0) {
@@ -220,7 +220,7 @@ export async function updateCommunityUser(id: string, formData: FormData) {
         homePhone: (formData.get('homePhone') as string) || null,
         residentRole: (formData.get('residentRole') as string) || 'Propietario',
         adminRole: (formData.get('adminRole') as string) || 'Usuario',
-        avatar: avatarUrl,
+        ...(avatarUrl && { avatar: avatarUrl }),
       },
     });
 

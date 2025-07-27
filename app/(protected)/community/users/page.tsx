@@ -32,6 +32,7 @@ import {
   CardTitle,
   CardToolbar,
 } from '@/components/ui/card';
+import ConfirmationDialog from '@/components/ui/confirmation-dialog';
 import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
 import { DataGridColumnVisibility } from '@/components/ui/data-grid-column-visibility';
@@ -59,6 +60,9 @@ import { UserDialog } from './components/user-dialog';
 
 export default function UsersPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<ICommunityUser | null>(null);
+  const [deletingUser, setDeletingUser] = useState<ICommunityUser | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -220,14 +224,14 @@ export default function UsersPage() {
                   <Eye />
                   Ver
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setDialogOpen(true)}>
+                <DropdownMenuItem onClick={() => handleEditUser(row.original)}>
                   <Pencil />
                   Editar
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   variant="destructive"
-                  onClick={() => handleDeleteUser(row.original.id)}
+                  onClick={() => setDeletingUser(row.original)}
                 >
                   <Trash />
                   Eliminar
@@ -372,13 +376,34 @@ export default function UsersPage() {
     }
   };
 
+  // Handle edit user
+  const handleEditUser = (user: ICommunityUser) => {
+    setEditingUser(user);
+    setDialogOpen(true);
+  };
+
   // Handle delete user
-  const handleDeleteUser = async (userId: string) => {
+  const handleDeleteUser = async () => {
+    if (!deletingUser) return;
+
+    setIsDeleting(true);
     try {
-      await deleteCommunityUser(userId);
-      // Data will be revalidated automatically
+      await deleteCommunityUser(deletingUser.id);
+      // Refresh data after deletion
+      const params: SearchParams = {
+        page: pagination.pageIndex + 1,
+        limit: pagination.pageSize,
+        query: searchQuery,
+        sort: sorting[0]?.id,
+        dir: sorting[0]?.desc ? 'desc' : 'asc',
+      };
+      const result = await getCommunityUsers(params);
+      setData(result);
+      setDeletingUser(null);
     } catch (error) {
       console.error('Error deleting user:', error);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -401,7 +426,10 @@ export default function UsersPage() {
               variant="primary"
               size="md"
               className="h-[34px] px-3 py-2"
-              onClick={() => setDialogOpen(true)}
+              onClick={() => {
+                setEditingUser(null);
+                setDialogOpen(true);
+              }}
             >
               <User2 className="mr-1 h-4 w-4" />
               Nuevo Usuario
@@ -465,9 +493,29 @@ export default function UsersPage() {
 
       <UserDialog
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        initialValues={initialValues}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) {
+            setEditingUser(null);
+          }
+        }}
+        initialValues={editingUser || initialValues}
         onSave={handleSaveUser}
+      />
+
+      <ConfirmationDialog
+        open={!!deletingUser}
+        onOpenChange={(open) => {
+          if (!open && !isDeleting) setDeletingUser(null);
+        }}
+        title="Eliminar Usuario"
+        description={
+          deletingUser
+            ? `¿Estás seguro de que quieres eliminar a ${deletingUser.firstName} ${deletingUser.firstLastName}? Esta acción no se puede deshacer.`
+            : ''
+        }
+        onConfirm={handleDeleteUser}
+        isLoading={isDeleting}
       />
     </div>
   );
