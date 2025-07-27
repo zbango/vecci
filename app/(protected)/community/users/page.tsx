@@ -61,6 +61,7 @@ import { UserDialog } from './components/user-dialog';
 export default function UsersPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<ICommunityUser | null>(null);
+  const [viewingUser, setViewingUser] = useState<ICommunityUser | null>(null);
   const [deletingUser, setDeletingUser] = useState<ICommunityUser | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -220,7 +221,7 @@ export default function UsersPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="bottom" align="start">
-                <DropdownMenuItem onClick={() => console.log(row.original)}>
+                <DropdownMenuItem onClick={() => handleViewUser(row.original)}>
                   <Eye />
                   Ver
                 </DropdownMenuItem>
@@ -277,14 +278,14 @@ export default function UsersPage() {
     secondName: '',
     firstLastName: '',
     secondLastName: '',
-    nationality: 'Ecuatoriano',
-    identificationType: 'Cédula',
+    nationality: 'Ecuador',
+    identificationType: 'Cédula de Identidad',
     identificationNumber: '',
     birthDate: new Date(),
     mobilePhone: '',
     homePhone: '',
-    residentRole: 'Propietario',
-    adminRole: 'Usuario',
+    residentRole: '',
+    adminRole: '',
     createdAt: new Date(),
     updatedAt: new Date(),
     isTrashed: false,
@@ -376,9 +377,16 @@ export default function UsersPage() {
     }
   };
 
+  // Handle view user
+  const handleViewUser = (user: ICommunityUser) => {
+    setViewingUser(user);
+    setDialogOpen(true);
+  };
+
   // Handle edit user
   const handleEditUser = (user: ICommunityUser) => {
     setEditingUser(user);
+    setViewingUser(null);
     setDialogOpen(true);
   };
 
@@ -428,6 +436,7 @@ export default function UsersPage() {
               className="h-[34px] px-3 py-2"
               onClick={() => {
                 setEditingUser(null);
+                setViewingUser(null);
                 setDialogOpen(true);
               }}
             >
@@ -497,10 +506,12 @@ export default function UsersPage() {
           setDialogOpen(open);
           if (!open) {
             setEditingUser(null);
+            setViewingUser(null);
           }
         }}
-        initialValues={editingUser || initialValues}
+        initialValues={editingUser || viewingUser || initialValues}
         onSave={handleSaveUser}
+        isReadOnly={!!viewingUser}
       />
 
       <ConfirmationDialog

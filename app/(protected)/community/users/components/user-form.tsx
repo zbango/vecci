@@ -1,5 +1,9 @@
 'use client';
 
+import {
+  DOCUMENT_TYPES_BY_NATIONALITY,
+  NATIONALITIES,
+} from '@/config/constants';
 import { FormField, FormSection } from '@/components/ui/form-section';
 import { Input, InputAddon, InputGroup } from '@/components/ui/input';
 import {
@@ -15,7 +19,6 @@ import AvatarUpload from '@/components/ui/avatar-upload';
 import { Button } from '@/components/ui/button';
 import { Calendar } from 'lucide-react';
 import { ICommunityUser } from '@/app/actions/community-users';
-import { NATIONALITIES } from '@/config/constants';
 import { Switch } from '@/components/ui/switch';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -27,6 +30,7 @@ interface UserFormProps {
   onSubmit: SubmitHandler;
   initialValues: ICommunityUser;
   onCancel?: () => void;
+  isReadOnly?: boolean;
 }
 
 const userSchema = z.object({
@@ -39,7 +43,7 @@ const userSchema = z.object({
   identificationNumber: z
     .string()
     .min(1, 'Número de identificación es requerido.'),
-  birthDate: z.date({ required_error: 'Fecha de nacimiento es requerida.' }),
+  birthDate: z.string().min(1, 'Fecha de nacimiento es requerida.'),
   mobilePhone: z.string().min(1, 'Teléfono móvil es requerido.'),
   homePhone: z.string().optional(),
   email: z.string().email('Email inválido').min(1, 'Email es requerido.'),
@@ -51,7 +55,12 @@ const userSchema = z.object({
 
 export type UserFormSchema = z.infer<typeof userSchema>;
 
-export function UserForm({ onSubmit, initialValues, onCancel }: UserFormProps) {
+export function UserForm({
+  onSubmit,
+  initialValues,
+  onCancel,
+  isReadOnly = false,
+}: UserFormProps) {
   const {
     register,
     handleSubmit,
@@ -65,10 +74,13 @@ export function UserForm({ onSubmit, initialValues, onCancel }: UserFormProps) {
       secondName: initialValues.secondName || '',
       firstLastName: initialValues.firstLastName || '',
       secondLastName: initialValues.secondLastName || '',
-      nationality: initialValues.nationality || '',
-      identificationType: initialValues.identificationType || '',
+      nationality: initialValues.nationality || 'Ecuador',
+      identificationType:
+        initialValues.identificationType || 'Cédula de Identidad',
       identificationNumber: initialValues.identificationNumber || '',
-      birthDate: initialValues.birthDate || new Date(),
+      birthDate: initialValues.id
+        ? `${initialValues.birthDate.getDate().toString().padStart(2, '0')}/${(initialValues.birthDate.getMonth() + 1).toString().padStart(2, '0')}/${initialValues.birthDate.getFullYear()}`
+        : `${new Date().getDate().toString().padStart(2, '0')}/${(new Date().getMonth() + 1).toString().padStart(2, '0')}/${new Date().getFullYear()}`,
       mobilePhone: initialValues.mobilePhone || '',
       homePhone: initialValues.homePhone || '',
       email: initialValues.email || '',
@@ -79,6 +91,7 @@ export function UserForm({ onSubmit, initialValues, onCancel }: UserFormProps) {
   });
 
   const avatarUrl = watch('avatarUrl');
+  const nationality = watch('nationality');
 
   const onSubmitForm = (data: UserFormSchema) => {
     const userData = {
@@ -86,6 +99,7 @@ export function UserForm({ onSubmit, initialValues, onCancel }: UserFormProps) {
       id: initialValues.id,
       isPublic: initialValues.isPublic,
       avatar: data.avatarUrl || initialValues.avatar,
+      birthDate: new Date(data.birthDate),
       createdAt: initialValues.createdAt,
       updatedAt: initialValues.updatedAt,
       isTrashed: initialValues.isTrashed,
@@ -134,7 +148,7 @@ export function UserForm({ onSubmit, initialValues, onCancel }: UserFormProps) {
                 id="firstName"
                 placeholder="Ingresa el primer nombre"
                 autoComplete="off"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isReadOnly}
                 className={`transition-none ${
                   errors.firstName ? 'border-red-500' : ''
                 }`}
@@ -155,7 +169,7 @@ export function UserForm({ onSubmit, initialValues, onCancel }: UserFormProps) {
                 id="secondName"
                 placeholder="Ingresa el segundo nombre"
                 autoComplete="off"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isReadOnly}
                 className="transition-none"
               />
             </div>
@@ -169,7 +183,7 @@ export function UserForm({ onSubmit, initialValues, onCancel }: UserFormProps) {
                 id="firstLastName"
                 placeholder="Ingresa el primer apellido"
                 autoComplete="off"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isReadOnly}
                 className={`transition-none ${
                   errors.firstLastName ? 'border-red-500' : ''
                 }`}
@@ -190,14 +204,26 @@ export function UserForm({ onSubmit, initialValues, onCancel }: UserFormProps) {
                 id="secondLastName"
                 placeholder="Ingresa el segundo apellido"
                 autoComplete="off"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isReadOnly}
                 className="transition-none"
               />
             </div>
           </FormField>
 
           <FormField label="Nacionalidad">
-            <Select onValueChange={(value) => setValue('nationality', value)}>
+            <Select
+              value={nationality || 'Ecuador'}
+              onValueChange={(value) => {
+                if (!isReadOnly) {
+                  setValue('nationality', value);
+                  // Reset identification type when nationality changes
+                  const defaultDocType =
+                    DOCUMENT_TYPES_BY_NATIONALITY[value]?.[0] || 'Cédula';
+                  setValue('identificationType', defaultDocType);
+                }
+              }}
+              disabled={isReadOnly}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Selecciona la nacionalidad" />
               </SelectTrigger>
@@ -218,14 +244,26 @@ export function UserForm({ onSubmit, initialValues, onCancel }: UserFormProps) {
 
           <FormField label="Tipo de identificación">
             <Select
-              onValueChange={(value) => setValue('identificationType', value)}
+              value={watch('identificationType') || 'Cédula de Identidad'}
+              onValueChange={(value) => {
+                if (!isReadOnly) setValue('identificationType', value);
+              }}
+              disabled={isReadOnly}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecciona el tipo de identificación" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Cédula">Cédula</SelectItem>
-                <SelectItem value="Pasaporte">Pasaporte</SelectItem>
+                {(
+                  DOCUMENT_TYPES_BY_NATIONALITY[nationality || 'Ecuador'] || [
+                    'Cédula',
+                    'Pasaporte',
+                  ]
+                ).map((docType) => (
+                  <SelectItem key={docType} value={docType}>
+                    {docType}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             {errors.identificationType && (
@@ -242,7 +280,7 @@ export function UserForm({ onSubmit, initialValues, onCancel }: UserFormProps) {
                 type="text"
                 placeholder="Ingresa el número de identificación"
                 autoComplete="off"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isReadOnly}
                 className={`transition-none ${
                   errors.identificationNumber ? 'border-red-500' : ''
                 }`}
@@ -262,10 +300,18 @@ export function UserForm({ onSubmit, initialValues, onCancel }: UserFormProps) {
               </InputAddon>
               <Input
                 {...register('birthDate', {
-                  setValueAs: (value) => new Date(value),
+                  setValueAs: (value) => {
+                    if (!value) return '';
+                    // Convert DD/MM/YYYY to YYYY-MM-DD for form submission
+                    const parts = value.split('/');
+                    if (parts.length === 3) {
+                      return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                    }
+                    return value;
+                  },
                 })}
-                type="date"
                 placeholder="DD/MM/YYYY"
+                disabled={isReadOnly}
                 className={`transition-none ${
                   errors.birthDate ? 'border-red-500' : ''
                 }`}
@@ -299,7 +345,7 @@ export function UserForm({ onSubmit, initialValues, onCancel }: UserFormProps) {
                   errors.mobilePhone ? 'border-red-500' : ''
                 }`}
                 autoComplete="off"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isReadOnly}
               />
             </div>
             {errors.mobilePhone && (
@@ -325,7 +371,7 @@ export function UserForm({ onSubmit, initialValues, onCancel }: UserFormProps) {
                 placeholder="Ej: 22524226"
                 className="flex-1 h-10 bg-white rounded-l-none shadow-sm transition-none"
                 autoComplete="off"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isReadOnly}
               />
             </div>
           </FormField>
@@ -337,7 +383,7 @@ export function UserForm({ onSubmit, initialValues, onCancel }: UserFormProps) {
                 type="email"
                 placeholder="Ingresa correo electrónico"
                 autoComplete="off"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isReadOnly}
                 className={`transition-none ${
                   errors.email ? 'border-red-500' : ''
                 }`}
@@ -356,14 +402,22 @@ export function UserForm({ onSubmit, initialValues, onCancel }: UserFormProps) {
           <FormField label="Residente">
             <ToggleGroup
               type="single"
+              value={watch('residentRole')}
               onValueChange={(value) => {
-                if (value) setValue('residentRole', value);
+                if (value && !isReadOnly) setValue('residentRole', value);
               }}
+              disabled={isReadOnly}
             >
-              <ToggleGroupItem value="Propietario" className="cursor-pointer">
+              <ToggleGroupItem
+                value="Propietario"
+                className="cursor-pointer data-[state=on]:bg-green-500 data-[state=on]:text-white"
+              >
                 Propietario
               </ToggleGroupItem>
-              <ToggleGroupItem value="Inquilino" className="cursor-pointer">
+              <ToggleGroupItem
+                value="Inquilino"
+                className="cursor-pointer data-[state=on]:bg-green-500 data-[state=on]:text-white"
+              >
                 Inquilino
               </ToggleGroupItem>
             </ToggleGroup>
@@ -377,14 +431,22 @@ export function UserForm({ onSubmit, initialValues, onCancel }: UserFormProps) {
           <FormField label="Administración">
             <ToggleGroup
               type="single"
+              value={watch('adminRole')}
               onValueChange={(value) => {
-                if (value) setValue('adminRole', value);
+                if (value && !isReadOnly) setValue('adminRole', value);
               }}
+              disabled={isReadOnly}
             >
-              <ToggleGroupItem value="Admin" className="cursor-pointer">
+              <ToggleGroupItem
+                value="Admin"
+                className="cursor-pointer data-[state=on]:bg-green-500 data-[state=on]:text-white"
+              >
                 Administrador
               </ToggleGroupItem>
-              <ToggleGroupItem value="Usuario" className="cursor-pointer">
+              <ToggleGroupItem
+                value="Usuario"
+                className="cursor-pointer data-[state=on]:bg-green-500 data-[state=on]:text-white"
+              >
                 Usuario
               </ToggleGroupItem>
             </ToggleGroup>
@@ -398,25 +460,27 @@ export function UserForm({ onSubmit, initialValues, onCancel }: UserFormProps) {
       </div>
 
       {/* Footer Actions */}
-      <div className="flex justify-end gap-2.5 mt-8">
-        <Button
-          variant="outline"
-          size="lg"
-          onClick={onCancel}
-          type="button"
-          className="h-10 px-4 text-sm font-medium bg-white"
-        >
-          Cancelar
-        </Button>
-        <Button
-          size="lg"
-          type="submit"
-          disabled={isSubmitting}
-          className="h-10 px-4 text-sm font-medium bg-[#1379F0] text-white"
-        >
-          {isSubmitting ? 'Guardando...' : 'Guardar'}
-        </Button>
-      </div>
+      {!isReadOnly && (
+        <div className="flex justify-end gap-2.5 mt-8">
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={onCancel}
+            type="button"
+            className="h-10 px-4 text-sm font-medium bg-white"
+          >
+            Cancelar
+          </Button>
+          <Button
+            size="lg"
+            type="submit"
+            disabled={isSubmitting}
+            className="h-10 px-4 text-sm font-medium bg-[#1379F0] text-white"
+          >
+            {isSubmitting ? 'Guardando...' : 'Guardar'}
+          </Button>
+        </div>
+      )}
     </form>
   );
 }

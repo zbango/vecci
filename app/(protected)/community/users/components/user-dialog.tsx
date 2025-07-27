@@ -11,6 +11,7 @@ interface UserDialogProps {
   onOpenChange: (open: boolean) => void;
   initialValues: ICommunityUser;
   onSave: (userData: ICommunityUser) => Promise<void>;
+  isReadOnly?: boolean;
 }
 
 export function UserDialog({
@@ -18,6 +19,7 @@ export function UserDialog({
   onOpenChange,
   initialValues,
   onSave,
+  isReadOnly = false,
 }: UserDialogProps) {
   return (
     <>
@@ -30,8 +32,14 @@ export function UserDialog({
             {/* Header */}
             <div className="flex justify-between items-center mb-8">
               <div className="flex flex-col gap-2">
-                <DialogTitle className="text-xl">Usuario</DialogTitle>
-                <p className="text-sm">Ingresa los datos del nuevo usuario</p>
+                <DialogTitle className="text-xl">
+                  {isReadOnly ? 'Ver Usuario' : 'Usuario'}
+                </DialogTitle>
+                <p className="text-sm">
+                  {isReadOnly
+                    ? 'Información del usuario'
+                    : 'Ingresa los datos del nuevo usuario'}
+                </p>
               </div>
               <Button
                 variant="outline"
@@ -46,6 +54,7 @@ export function UserDialog({
               onSubmit={onSave}
               onCancel={() => onOpenChange(false)}
               initialValues={initialValues}
+              isReadOnly={isReadOnly}
             />
           </div>
         </DialogContent>

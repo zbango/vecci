@@ -143,7 +143,7 @@ export async function createCommunityUser(formData: FormData) {
         secondName: (formData.get('secondName') as string) || null,
         firstLastName: formData.get('firstLastName') as string,
         secondLastName: (formData.get('secondLastName') as string) || null,
-        nationality: (formData.get('nationality') as string) || 'Ecuatoriano',
+        nationality: (formData.get('nationality') as string) || 'Ecuador',
         identificationType:
           (formData.get('identificationType') as string) || 'Cédula',
         identificationNumber: formData.get('identificationNumber') as string,
@@ -211,7 +211,7 @@ export async function updateCommunityUser(id: string, formData: FormData) {
         secondName: (formData.get('secondName') as string) || null,
         firstLastName: formData.get('firstLastName') as string,
         secondLastName: (formData.get('secondLastName') as string) || null,
-        nationality: (formData.get('nationality') as string) || 'Ecuatoriano',
+        nationality: (formData.get('nationality') as string) || 'Ecuador',
         identificationType:
           (formData.get('identificationType') as string) || 'Cédula',
         identificationNumber: formData.get('identificationNumber') as string,
