@@ -9,33 +9,25 @@ import {
 } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { FormField, FormSection } from '@/components/ui/form-section';
-import { Input, InputAddon, InputGroup } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Shield, X } from 'lucide-react';
 
 import AvatarUpload from '@/components/ui/avatar-upload';
 import { Button } from '@/components/ui/button';
-import { Calendar } from 'lucide-react';
-import { NATIONALITIES } from '@/config/constants';
-import { RiShieldCrossLine } from '@remixicon/react';
+import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useState } from 'react';
 
-interface UserDialogProps {
+interface HeadquarterDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function UserDialog({ open, onOpenChange }: UserDialogProps) {
+export function HeadquarterDialog({
+  open,
+  onOpenChange,
+}: HeadquarterDialogProps) {
   const [showAlert, setShowAlert] = useState(false);
-  const [resident, setResident] = useState('');
-  const [admin, setAdmin] = useState('');
+
   const handleSave = () => {
     onOpenChange(false);
     setShowAlert(true);
@@ -53,8 +45,8 @@ export function UserDialog({ open, onOpenChange }: UserDialogProps) {
             {/* Header */}
             <div className="flex justify-between items-center mb-8">
               <div className="flex flex-col gap-2">
-                <DialogTitle className="text-xl">Usuario</DialogTitle>
-                <p className="text-sm">Ingresa los datos del nuevo usuario</p>
+                <DialogTitle className="text-xl">Sede</DialogTitle>
+                <p className="text-sm">Ingresa los datos de la nueva sede</p>
               </div>
               <Button
                 variant="outline"
@@ -67,9 +59,9 @@ export function UserDialog({ open, onOpenChange }: UserDialogProps) {
             </div>
 
             <div className="space-y-8">
-              {/* Personal Information */}
+              {/* Sede Information */}
               <FormSection
-                title="Información de usuario"
+                title="Información de la sede"
                 toolbar={
                   <div className="flex items-center gap-2.5">
                     <span className="text-sm">Perfil público</span>
@@ -84,75 +76,29 @@ export function UserDialog({ open, onOpenChange }: UserDialogProps) {
                   </div>
                 </FormField>
 
-                <FormField label="Primer Nombre">
+                <FormField label="Tipo de sede">
                   <Input
-                    placeholder="Ingresa el primer nombre"
+                    placeholder="Selecciona el tipo de sede"
                     className="h-10"
                   />
                 </FormField>
 
-                <FormField label="Segundo Nombre">
+                <FormField label="Nombre o número de la sede">
                   <Input
-                    placeholder="Ingresa el segundo nombre"
+                    placeholder="Ingresa el nombre o número de la sede"
                     className="h-10"
                   />
                 </FormField>
 
-                <FormField label="Primer Apellido">
+                <FormField label="Dirección de la sede">
                   <Input
-                    placeholder="Ingresa el primer apellido"
+                    placeholder="Ingresa la dirección de la sede"
                     className="h-10"
                   />
                 </FormField>
 
-                <FormField label="Segundo Apellido">
-                  <Input
-                    placeholder="Ingresa el segundo apellido"
-                    className="h-10"
-                  />
-                </FormField>
-
-                <FormField label="Nacionalidad">
-                  <Select>
-                    <SelectTrigger className="h-10">
-                      <SelectValue placeholder="Selecciona la nacionalidad" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {NATIONALITIES.map((nationality) => (
-                        <SelectItem key={nationality} value={nationality}>
-                          {nationality}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormField>
-
-                <FormField label="Tipo de identificación">
-                  <Select>
-                    <SelectTrigger className="h-10">
-                      <SelectValue placeholder="Selecciona el tipo de identificación" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="cedula">Cédula</SelectItem>
-                      <SelectItem value="pasaporte">Pasaporte</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormField>
-
-                <FormField label="Número de identificación">
-                  <Input
-                    placeholder="Ingresa el número de identificación"
-                    className="h-10"
-                  />
-                </FormField>
-
-                <FormField label="Fecha de nacimiento">
-                  <InputGroup>
-                    <InputAddon mode="icon">
-                      <Calendar />
-                    </InputAddon>
-                    <Input placeholder="DD/MM/YYYY" />
-                  </InputGroup>
+                <FormField label="Referencia">
+                  <Input placeholder="Ingresa la referencia" className="h-10" />
                 </FormField>
               </FormSection>
 
@@ -200,52 +146,20 @@ export function UserDialog({ open, onOpenChange }: UserDialogProps) {
                 </FormField>
               </FormSection>
 
-              {/* Role Information */}
-              <FormSection title="Rol">
-                <FormField label="Residente">
-                  <ToggleGroup
-                    type="single"
-                    value={resident}
-                    onValueChange={(newValue) => {
-                      if (newValue) setResident(newValue);
-                    }}
-                  >
-                    <ToggleGroupItem
-                      value="propietario"
-                      className="cursor-pointer"
-                    >
-                      Propietario
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="inquilino"
-                      className="cursor-pointer"
-                    >
-                      Inquilino
-                    </ToggleGroupItem>
-                  </ToggleGroup>
+              {/* User Assignment */}
+              <FormSection title="Administración">
+                <FormField label="Cargo">
+                  <Input
+                    placeholder="Selecciona el nombre del propietario"
+                    className="h-10"
+                  />
                 </FormField>
 
-                <FormField label="Administración">
-                  <ToggleGroup
-                    type="single"
-                    value={admin}
-                    onValueChange={(newValue) => {
-                      if (newValue) setAdmin(newValue);
-                    }}
-                  >
-                    <ToggleGroupItem
-                      value="propietario"
-                      className="cursor-pointer"
-                    >
-                      Administrador
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="inquilino"
-                      className="cursor-pointer"
-                    >
-                      Comite
-                    </ToggleGroupItem>
-                  </ToggleGroup>
+                <FormField label="Usuario">
+                  <Input
+                    placeholder="Selecciona el nombre del inquilino"
+                    className="h-10"
+                  />
                 </FormField>
               </FormSection>
             </div>
@@ -263,7 +177,7 @@ export function UserDialog({ open, onOpenChange }: UserDialogProps) {
               <Button
                 size="lg"
                 onClick={handleSave}
-                className="h-10 px-4 text-sm font-medium bg-[#1379F0] text-white"
+                className="h-10 px-4 text-sm font-medium bg-[#1379F0]"
               >
                 Guardar
               </Button>
@@ -275,16 +189,26 @@ export function UserDialog({ open, onOpenChange }: UserDialogProps) {
       {/* Success Alert */}
       {showAlert && (
         <div className="fixed top-4 right-4 z-50 w-[400px]">
-          <Alert appearance="light" variant="success" close={true}>
-            <AlertIcon>
-              <RiShieldCrossLine />
+          <Alert className="bg-[#E1FCE9] border-[#0BC33F] border rounded-lg p-4">
+            <AlertIcon className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
+              <Shield className="w-5 h-5 text-[#0BC33F]" />
             </AlertIcon>
-            <AlertContent>
-              <AlertTitle>¡Usuario creado con éxito!</AlertTitle>
-              <AlertDescription>
-                El perfil del usuario se registró correctamente.
+            <AlertContent className="ml-4">
+              <AlertTitle className="text-[#27314B] font-semibold text-[15px] leading-tight">
+                ¡Unidad creada con éxito!
+              </AlertTitle>
+              <AlertDescription className=" text-sm font-medium mt-1">
+                La unidad se registró correctamente.
               </AlertDescription>
             </AlertContent>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAlert(false)}
+              className="ml-auto p-1 h-7 w-7 bg-white rounded-full hover:bg-gray-50"
+            >
+              <X className="w-4 h-4 text-[#0BC33F]" />
+            </Button>
           </Alert>
         </div>
       )}

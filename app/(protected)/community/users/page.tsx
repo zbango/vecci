@@ -1,5 +1,6 @@
 'use client';
 
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   Card,
   CardFooter,
@@ -10,9 +11,12 @@ import {
 } from '@/components/ui/card';
 import {
   CloudUpload,
+  Eye,
   MoreVertical,
+  Pencil,
   Search,
   Settings2,
+  Trash,
   User2,
 } from 'lucide-react';
 import {
@@ -24,8 +28,14 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  Column,
 } from '@tanstack/react-table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input, InputWrapper } from '@/components/ui/input';
 import React, { useMemo, useState } from 'react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
@@ -163,48 +173,32 @@ export default function UsersPage() {
     { id: 'name', desc: true },
   ]);
 
-  const createCenteredHeader = (title: string) => {
-    const CenteredHeader = ({ column }: { column: Column<IUser, unknown> }) => (
-      <div className="flex justify-center w-full">
-        <DataGridColumnHeader title={title} column={column} />
-      </div>
-    );
-    CenteredHeader.displayName = 'CenteredHeader';
-    return CenteredHeader;
-  };
-
-  const CenteredWrapper = ({ children }: { children: React.ReactNode }) => (
-    <div className="flex justify-center w-full">
-      {children}
-    </div>
-  );
-
   const columns = useMemo<ColumnDef<IUser>[]>(
     () => [
       {
         accessorKey: 'name',
         id: 'name',
         header: ({ column }) => (
-          <div className="pl-13">
-            <DataGridColumnHeader title="Usuario" column={column} />
-          </div>
+          <DataGridColumnHeader title="Usuario" column={column} />
         ),
         cell: ({ row }) => {
           return (
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 bg-[#F0F1F6] rounded-full flex items-center justify-center">
-                <span className="text-base font-medium text-[#4B5675]">
-                  {row.original.name
-                    .split(' ')
-                    .map((n) => n[0])
-                    .join('')}
-                </span>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center">
+                <Avatar>
+                  <AvatarFallback>
+                    {row.original.name
+                      .split(' ')
+                      .map((n) => n[0])
+                      .join('')}
+                  </AvatarFallback>
+                </Avatar>
               </div>
               <div className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-[#111B37]">
+                <span className="text-sm font-medium'">
                   {row.original.name}
                 </span>
-                <span className="text-sm font-normal text-[#4B5675]">
+                <span className="text-sm font-normal">
                   Cédula: {row.original.id}
                 </span>
               </div>
@@ -219,18 +213,12 @@ export default function UsersPage() {
         accessorKey: 'contact',
         id: 'contact',
         header: ({ column }) => (
-          <div className="pl-3">
-            <DataGridColumnHeader title="Contacto" column={column} />
-          </div>
+          <DataGridColumnHeader title="Contacto" column={column} />
         ),
         cell: ({ row }) => (
           <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-[#111B37]">
-              {row.original.phone}
-            </span>
-            <span className="text-sm font-normal text-[#4B5675]">
-              {row.original.email}
-            </span>
+            <span className="text-sm">{row.original.phone}</span>
+            <span className="text-sm">{row.original.email}</span>
           </div>
         ),
         size: 290,
@@ -240,13 +228,17 @@ export default function UsersPage() {
       {
         accessorKey: 'units',
         id: 'units',
-        header: createCenteredHeader('Unidades'),
+        header: ({ column }) => (
+          <DataGridColumnHeader
+            title="Unidades"
+            column={column}
+            className="flex justify-center w-full ml-0"
+          />
+        ),
         cell: ({ row }) => (
-          <CenteredWrapper>
-            <span className="text-sm font-medium text-[#111B37]">
-              {row.original.units}
-            </span>
-          </CenteredWrapper>
+          <div className="flex justify-center w-full">
+            <span className="text-sm font-medium">{row.original.units}</span>
+          </div>
         ),
         size: 130,
         enableSorting: true,
@@ -255,11 +247,17 @@ export default function UsersPage() {
       {
         accessorKey: 'resident',
         id: 'resident',
-        header: createCenteredHeader('Residente'),
+        header: ({ column }) => (
+          <DataGridColumnHeader
+            title="Residente"
+            column={column}
+            className="flex justify-center w-full ml-0"
+          />
+        ),
         cell: ({ row }) => {
           const isInquilino = row.original.resident === 'Inquilino';
           return (
-            <CenteredWrapper>
+            <div className="flex justify-center w-full">
               <div
                 className={`px-1.5 py-1 rounded-full border w-24 text-center ${
                   isInquilino
@@ -275,7 +273,7 @@ export default function UsersPage() {
                   {row.original.resident}
                 </span>
               </div>
-            </CenteredWrapper>
+            </div>
           );
         },
         size: 130,
@@ -285,11 +283,17 @@ export default function UsersPage() {
       {
         accessorKey: 'admin',
         id: 'admin',
-        header: createCenteredHeader('Administrador'),
+        header: ({ column }) => (
+          <DataGridColumnHeader
+            title="Administrador"
+            column={column}
+            className="flex justify-center w-full ml-0"
+          />
+        ),
         cell: ({ row }) => {
           const isAdmin = row.original.admin === 'Admin';
           return (
-            <CenteredWrapper>
+            <div className="flex justify-center w-full">
               <div
                 className={`px-1.5 py-1 rounded-full border w-20 text-center ${
                   isAdmin
@@ -297,15 +301,11 @@ export default function UsersPage() {
                     : 'bg-transparent border-transparent'
                 }`}
               >
-                <span
-                  className={`text-sm font-medium ${
-                    isAdmin ? 'text-[#1379F0]' : 'text-[#111B37]'
-                  }`}
-                >
+                <span className={`text-sm font-medium`}>
                   {row.original.admin}
                 </span>
               </div>
-            </CenteredWrapper>
+            </div>
           );
         },
         size: 130,
@@ -316,16 +316,35 @@ export default function UsersPage() {
         accessorKey: 'actions',
         id: 'actions',
         header: () => (
-          <CenteredWrapper>
-            <span className="text-sm font-normal text-[#4B5675]">Acciones</span>
-          </CenteredWrapper>
+          <div className="flex justify-center w-full">
+            <span className="text-sm font-normal">Acciones</span>
+          </div>
         ),
-        cell: () => (
-          <CenteredWrapper>
-            <Button variant="ghost" size="sm" className="w-6 h-6 p-0">
-              <MoreVertical className="h-6 w-6 text-[#78829D]" />
-            </Button>
-          </CenteredWrapper>
+        cell: ({ row }) => (
+          <div className="flex justify-center w-full">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="h-7 w-7" mode="icon" variant="ghost">
+                  <MoreVertical />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="bottom" align="start">
+                <DropdownMenuItem onClick={() => console.log(row.original)}>
+                  <Eye />
+                  Ver
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setDialogOpen(true)}>
+                  <Pencil />
+                  Editar
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="destructive">
+                  <Trash />
+                  Eliminar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         ),
         size: 130,
         enableSorting: false,
@@ -363,7 +382,7 @@ export default function UsersPage() {
             <Button
               variant="secondary"
               size="md"
-              className="bg-white text-[#4B5675] border border-[#E2E4ED] shadow-sm h-[34px] px-3 py-2"
+              className="bg-white border border-[#E2E4ED] shadow-sm h-[34px] px-3 py-2"
             >
               <CloudUpload className="mr-1 h-4 w-4" />
               Carga masiva

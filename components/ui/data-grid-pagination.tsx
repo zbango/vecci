@@ -139,7 +139,7 @@ function DataGridPagination(props: DataGridPaginationProps) {
           mergedProps?.sizesSkeleton
         ) : (
           <>
-            <div className="text-sm text-muted-foreground">Rows per page</div>
+            <div className="text-sm text-muted-foreground">Mostrar</div>
             <Select
               value={`${pageSize}`}
               indicatorPosition="right"
@@ -159,6 +159,7 @@ function DataGridPagination(props: DataGridPaginationProps) {
                 ))}
               </SelectContent>
             </Select>
+            <div className="text-sm text-muted-foreground">por página</div>
           </>
         )}
       </div>

@@ -1,6 +1,16 @@
 'use client';
 
 import {
+  Building,
+  CloudUpload,
+  Eye,
+  MoreVertical,
+  Pencil,
+  Search,
+  Settings2,
+  Trash,
+} from 'lucide-react';
+import {
   Card,
   CardFooter,
   CardHeader,
@@ -8,13 +18,6 @@ import {
   CardTitle,
   CardToolbar,
 } from '@/components/ui/card';
-import {
-  CloudUpload,
-  MoreVertical,
-  Search,
-  Settings2,
-  User2,
-} from 'lucide-react';
 import {
   ColumnDef,
   PaginationState,
@@ -25,6 +28,13 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input, InputWrapper } from '@/components/ui/input';
 import React, { useMemo, useState } from 'react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
@@ -155,10 +165,31 @@ export default function UnitsPage() {
         accessorKey: 'actions',
         id: 'actions',
         header: () => <span className="text-sm font-normal">Acciones</span>,
-        cell: () => (
-          <Button variant="ghost" size="sm" className="w-6 h-6 p-0">
-            <MoreVertical className="h-6 w-6 text-[#78829D]" />
-          </Button>
+        cell: ({ row }) => (
+          <div className="flex justify-center w-full">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="h-7 w-7" mode="icon" variant="ghost">
+                  <MoreVertical />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="bottom" align="start">
+                <DropdownMenuItem onClick={() => console.log(row.original)}>
+                  <Eye />
+                  Ver
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setDialogOpen(true)}>
+                  <Pencil />
+                  Editar
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="destructive">
+                  <Trash />
+                  Eliminar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         ),
         size: 130,
         enableSorting: false,
@@ -207,8 +238,8 @@ export default function UnitsPage() {
               className="h-[34px] px-3 py-2"
               onClick={() => setDialogOpen(true)}
             >
-              <User2 className="mr-1 h-4 w-4" />
-              Nuevo Unidad
+              <Building />
+              Nueva Unidad
             </Button>
           </>
         }
