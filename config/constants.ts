@@ -293,3 +293,21 @@ export const DOCUMENT_TYPES_BY_NATIONALITY: Record<string, string[]> = {
   Honduras: ['Documento Nacional de Identificación (DNI)', 'Pasaporte'],
   Nicaragua: ['Cédula de Identidad', 'Pasaporte'],
 };
+
+export const POSITIONS = [
+  'Presidente',
+  'Administrador',
+  'Tesorero',
+  'Contador',
+  'Vocal',
+  'Abogado',
+];
+
+export const HEADQUARTER_TYPES = [
+  'Conjunto Residencial',
+  'Edificio',
+  'Casa',
+  'Bodega',
+  'Parqueadero',
+  'Departamento',
+];

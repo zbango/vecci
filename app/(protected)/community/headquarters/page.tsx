@@ -1,12 +1,18 @@
 'use client';
 
+import React, { useEffect, useMemo, useState, useTransition } from 'react';
 import {
-  Building2,
-  CloudUpload,
-  MoreVertical,
-  Search,
-  Settings2,
-} from 'lucide-react';
+  ColumnDef,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  PaginationState,
+  SortingState,
+  useReactTable,
+} from '@tanstack/react-table';
+import { Eye, MoreVertical, Pencil, Search, Trash } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardFooter,
@@ -15,150 +21,183 @@ import {
   CardTitle,
   CardToolbar,
 } from '@/components/ui/card';
-import {
-  ColumnDef,
-  PaginationState,
-  SortingState,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
-import { Input, InputWrapper } from '@/components/ui/input';
-import React, { useMemo, useState } from 'react';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-
-import { Button } from '@/components/ui/button';
+import ConfirmationDialog from '@/components/ui/confirmation-dialog';
 import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
-import { DataGridColumnVisibility } from '@/components/ui/data-grid-column-visibility';
 import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
-import { HeadquarterDialog } from './components/headquarter-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Input, InputWrapper } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/page-header';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import {
+  createHeadquarters,
+  deleteHeadquarters,
+  getHeadquarters,
+  updateHeadquarters,
+  type IHeadquarters,
+  type SearchParams,
+} from '@/app/actions/headquarters';
+import { HeadquartersDialog } from './components/headquarters-dialog';
 
-interface IHeadquarter {
-  id: string;
-  type: string;
-  code: string;
-  area: number;
-  headquarter: string;
-  reference: string;
-}
-
-const units: IHeadquarter[] = [
-  {
-    id: '173594941-2',
-    type: 'Departamento',
-    code: '101',
-    area: 80,
-    headquarter: 'Sede Principal',
-    reference: 'N/A',
-  },
-  {
-    id: '103594941-2',
-    type: 'Departamento',
-    code: 'A102',
-    area: 90,
-    headquarter: 'Sede Principal',
-    reference: 'Torre A',
-  },
-];
+// Initial values for new headquarters
+const initialValues: IHeadquarters = {
+  id: '',
+  avatar: '',
+  type: '',
+  identification: '',
+  address: '',
+  reference: '',
+  mobilePhone: '',
+  homePhone: '',
+  email: '',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  isTrashed: false,
+  createdByUserId: '',
+  isProtected: false,
+  userAssignments: [],
+};
 
 export default function HeadquartersPage() {
+  // State management
+  const [data, setData] = useState<{
+    headquarters: IHeadquarters[];
+    total: number;
+    totalPages: number;
+  } | null>(null);
+  const [editingItem, setEditingItem] = useState<IHeadquarters | null>(null);
+  const [viewingItem, setViewingItem] = useState<IHeadquarters | null>(null);
+  const [deletingItem, setDeletingItem] = useState<IHeadquarters | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 5,
+    pageSize: 10,
   });
   const [sorting, setSorting] = useState<SortingState>([
-    { id: 'name', desc: true },
+    { id: 'type', desc: false },
   ]);
+  const [isPending, startTransition] = useTransition();
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const columns = useMemo<ColumnDef<IHeadquarter>[]>(
+  // Table columns definition
+  const columns = useMemo<ColumnDef<IHeadquarters>[]>(
     () => [
       {
         accessorKey: 'type',
-        id: 'type',
         header: ({ column }) => (
           <DataGridColumnHeader title="Tipo" column={column} />
         ),
-        cell: ({ row }) => {
-          return (
-            <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center">
-                <span className="text-base font-medium">
-                  {row.original.type
-                    .split(' ')
-                    .map((n) => n[0])
-                    .join('')}
-                </span>
-              </div>
-              <div className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-[#111B37]">
-                  {row.original.code}
-                </span>
-              </div>
-            </div>
-          );
-        },
-        size: 290,
+        cell: ({ row }) => <span className="text-sm">{row.original.type}</span>,
+        size: 150,
         enableSorting: true,
         enableHiding: false,
       },
       {
-        accessorKey: 'code',
-        id: 'code',
+        accessorKey: 'identification',
         header: ({ column }) => (
-          <DataGridColumnHeader title="Nombre" column={column} />
+          <DataGridColumnHeader title="Identificación" column={column} />
         ),
-        cell: ({ row }) => <span>{row.original.code}</span>,
-        size: 290,
+        cell: ({ row }) => (
+          <span className="text-sm">{row.original.identification}</span>
+        ),
+        size: 150,
         enableSorting: true,
         enableHiding: false,
       },
       {
-        accessorKey: 'area',
-        id: 'area',
+        accessorKey: 'address',
         header: ({ column }) => (
-          <DataGridColumnHeader title="Unidades" column={column} />
+          <DataGridColumnHeader title="Dirección" column={column} />
         ),
-        cell: ({ row }) => <span>{row.original.area}</span>,
-        size: 130,
+        cell: ({ row }) => (
+          <span className="text-sm">{row.original.address}</span>
+        ),
+        size: 200,
         enableSorting: true,
         enableHiding: false,
       },
       {
-        accessorKey: 'headquarter',
-        id: 'headquarter',
+        accessorKey: 'email',
         header: ({ column }) => (
-          <DataGridColumnHeader title="Parqueaderos" column={column} />
+          <DataGridColumnHeader title="Email" column={column} />
         ),
-        cell: ({ row }) => <span>{row.original.headquarter}</span>,
-        size: 130,
+        cell: ({ row }) => (
+          <span className="text-sm">{row.original.email}</span>
+        ),
+        size: 200,
         enableSorting: true,
         enableHiding: false,
       },
       {
-        accessorKey: 'reference',
-        id: 'reference',
+        accessorKey: 'mobilePhone',
         header: ({ column }) => (
-          <DataGridColumnHeader title="Bodegas" column={column} />
+          <DataGridColumnHeader title="Teléfono" column={column} />
         ),
-        cell: ({ row }) => <span>{row.original.reference}</span>,
-        size: 130,
+        cell: ({ row }) => (
+          <span className="text-sm">{row.original.mobilePhone}</span>
+        ),
+        size: 150,
         enableSorting: true,
+        enableHiding: false,
+      },
+      {
+        accessorKey: 'userAssignments',
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Usuarios Asignados" column={column} />
+        ),
+        cell: ({ row }) => (
+          <span className="text-sm">
+            {row.original.userAssignments?.length || 0} usuarios
+          </span>
+        ),
+        size: 150,
+        enableSorting: false,
         enableHiding: false,
       },
       {
         accessorKey: 'actions',
         id: 'actions',
-        header: () => <span className="text-sm font-normal">Acciones</span>,
-        cell: () => (
-          <Button variant="ghost" size="sm" className="w-6 h-6 p-0">
-            <MoreVertical className="h-6 w-6 " />
-          </Button>
+        header: () => (
+          <div className="flex justify-center w-full">
+            <span className="text-sm font-normal">Acciones</span>
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div className="flex justify-center w-full">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="h-7 w-7" mode="icon" variant="ghost">
+                  <MoreVertical />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="bottom" align="start">
+                <DropdownMenuItem onClick={() => handleViewItem(row.original)}>
+                  <Eye />
+                  Ver
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleEditItem(row.original)}>
+                  <Pencil />
+                  Editar
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => setDeletingItem(row.original)}
+                >
+                  <Trash />
+                  Eliminar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         ),
         size: 130,
         enableSorting: false,
@@ -168,11 +207,12 @@ export default function HeadquartersPage() {
     [],
   );
 
+  // Table configuration
   const table = useReactTable({
     columns,
-    data: units,
-    pageCount: Math.ceil((units?.length || 0) / pagination.pageSize),
-    getRowId: (row: IHeadquarter) => row.id,
+    data: data?.headquarters || [],
+    pageCount: data?.totalPages || 0,
+    getRowId: (row: IHeadquarters) => row.id,
     state: {
       pagination,
       sorting,
@@ -184,40 +224,142 @@ export default function HeadquartersPage() {
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    manualPagination: true,
+    manualSorting: true,
+    enableSorting: true,
   });
+
+  // Data fetching
+  useEffect(() => {
+    const fetchData = async () => {
+      const params: SearchParams = {
+        page: pagination.pageIndex + 1,
+        limit: pagination.pageSize,
+        query: searchQuery,
+        sort: sorting[0]?.id,
+        dir: sorting[0]?.desc ? 'desc' : 'asc',
+      };
+
+      const result = await getHeadquarters(params);
+      setData(result);
+    };
+
+    startTransition(() => {
+      fetchData();
+    });
+  }, [pagination.pageIndex, pagination.pageSize, searchQuery, sorting]);
+
+  // CRUD handlers
+  const handleSaveItem = async (headquartersData: IHeadquarters) => {
+    try {
+      const formData = new FormData();
+      formData.append('avatar', headquartersData.avatar || '');
+      formData.append('type', headquartersData.type);
+      formData.append('identification', headquartersData.identification);
+      formData.append('address', headquartersData.address);
+      formData.append('reference', headquartersData.reference || '');
+      formData.append('mobilePhone', headquartersData.mobilePhone);
+      formData.append('homePhone', headquartersData.homePhone || '');
+      formData.append('email', headquartersData.email);
+      formData.append(
+        'assignments',
+        JSON.stringify(headquartersData.userAssignments || []),
+      );
+
+      if (headquartersData.id) {
+        await updateHeadquarters(headquartersData.id, formData);
+      } else {
+        await createHeadquarters(formData);
+      }
+
+      // Refresh data
+      const params: SearchParams = {
+        page: pagination.pageIndex + 1,
+        limit: pagination.pageSize,
+        query: searchQuery,
+        sort: sorting[0]?.id,
+        dir: sorting[0]?.desc ? 'desc' : 'asc',
+      };
+      const result = await getHeadquarters(params);
+      setData(result);
+
+      setDialogOpen(false);
+    } catch (error) {
+      console.error('Error saving headquarters:', error);
+      throw error;
+    }
+  };
+
+  const handleDeleteItem = async () => {
+    if (!deletingItem) return;
+
+    try {
+      setIsDeleting(true);
+      await deleteHeadquarters(deletingItem.id);
+
+      // Refresh data after deletion
+      const params: SearchParams = {
+        page: pagination.pageIndex + 1,
+        limit: pagination.pageSize,
+        query: searchQuery,
+        sort: sorting[0]?.id,
+        dir: sorting[0]?.desc ? 'desc' : 'asc',
+      };
+      const result = await getHeadquarters(params);
+      setData(result);
+      setDeletingItem(null);
+    } catch (error) {
+      console.error('Error deleting headquarters:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleViewItem = (item: IHeadquarters) => {
+    setViewingItem(item);
+    setEditingItem(null);
+    setDialogOpen(true);
+  };
+
+  const handleEditItem = (item: IHeadquarters) => {
+    setEditingItem(item);
+    setViewingItem(null);
+    setDialogOpen(true);
+  };
 
   return (
     <div className="flex flex-col gap-8 px-5 py-8 max-w-[1200px] mx-auto">
       <PageHeader
         title="Sedes"
-        description="Crea y gestiona las sedes de tu comunidad"
+        description="Gestiona las sedes de tu organización"
         actions={
-          <>
-            <Button
-              variant="secondary"
-              size="md"
-              className="bg-white border shadow-sm h-[34px] px-3 py-2"
-            >
-              <CloudUpload className="mr-1 h-4 w-4" />
-              Carga masiva
-            </Button>
-            <Button
-              variant="primary"
-              size="md"
-              className="h-[34px] px-3 py-2"
-              onClick={() => setDialogOpen(true)}
-            >
-              <Building2 />
-              Nueva Sede
-            </Button>
-          </>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => {
+              setEditingItem(null);
+              setViewingItem(null);
+              setDialogOpen(true);
+            }}
+          >
+            Nueva Sede
+          </Button>
         }
       />
 
-      <DataGrid table={table} recordCount={units?.length || 0}>
+      <DataGrid
+        table={table}
+        recordCount={data?.total || 0}
+        emptyMessage="Aún no se han registrado sedes."
+        isLoading={isPending}
+      >
         <Card>
           <CardHeader className="py-3">
-            <CardTitle>Mostrando 10 de 100 unidades</CardTitle>
+            <CardTitle>
+              {isPending
+                ? 'Cargando...'
+                : `Mostrando ${data?.headquarters?.length || 0} de ${data?.total || 0} sedes`}
+            </CardTitle>
             <CardToolbar>
               <InputWrapper>
                 <Button
@@ -228,17 +370,13 @@ export default function HeadquartersPage() {
                 >
                   <Search />
                 </Button>
-                <Input type="text" placeholder="Buscar Sede" />
+                <Input
+                  type="text"
+                  placeholder="Buscar sedes"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </InputWrapper>
-              <DataGridColumnVisibility
-                table={table}
-                trigger={
-                  <Button variant="outline" size="sm">
-                    <Settings2 />
-                    Filtros
-                  </Button>
-                }
-              />
             </CardToolbar>
           </CardHeader>
           <CardTable>
@@ -253,7 +391,34 @@ export default function HeadquartersPage() {
         </Card>
       </DataGrid>
 
-      <HeadquarterDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+      <HeadquartersDialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) {
+            setEditingItem(null);
+            setViewingItem(null);
+          }
+        }}
+        initialValues={editingItem || viewingItem || initialValues}
+        onSave={handleSaveItem}
+        isReadOnly={!!viewingItem}
+      />
+
+      <ConfirmationDialog
+        open={!!deletingItem}
+        onOpenChange={(open) => {
+          if (!open && !isDeleting) setDeletingItem(null);
+        }}
+        title="Eliminar Sede"
+        description={
+          deletingItem
+            ? `¿Estás seguro de que quieres eliminar ${deletingItem.type}? Esta acción no se puede deshacer.`
+            : ''
+        }
+        onConfirm={handleDeleteItem}
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

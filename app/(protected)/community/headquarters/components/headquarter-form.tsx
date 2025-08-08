@@ -1,36 +1,36 @@
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import {
   DOCUMENT_TYPES_BY_NATIONALITY,
   NATIONALITIES,
 } from '@/config/constants';
-import AvatarUpload from '@/components/ui/avatar-upload';
-import { Button } from '@/components/ui/button';
+import { FormField, FormSection } from '@/components/ui/form-section';
 import {
-  FormDateInput,
   FormPhoneInput,
   FormSelect,
   FormTextInput,
   FormToggleGroup,
   LoadingButton,
 } from '@/components/ui/form-components';
-import { FormField, FormSection } from '@/components/ui/form-section';
-import { Switch } from '@/components/ui/switch';
+
+import AvatarUpload from '@/components/ui/avatar-upload';
+import { Button } from '@/components/ui/button';
 import { ICommunityUser } from '@/app/actions/community-users';
+import { Switch } from '@/components/ui/switch';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 type SubmitHandler = (values: ICommunityUser) => void | Promise<void>;
 
-interface UserFormProps {
+interface HeadquarterFormProps {
   onSubmit: SubmitHandler;
   initialValues: ICommunityUser;
   onCancel?: () => void;
   isReadOnly?: boolean;
 }
 
-const userSchema = z.object({
+const headquarterSchema = z.object({
   firstName: z.string().min(1, 'Primer nombre es requerido.'),
   secondName: z.string().optional(),
   firstLastName: z.string().min(1, 'Primer apellido es requerido.'),
@@ -40,57 +40,45 @@ const userSchema = z.object({
   identificationNumber: z
     .string()
     .min(1, 'Número de identificación es requerido.'),
-  birthDate: z.string().min(1, 'Fecha de nacimiento es requerida.'),
   mobilePhone: z.string().min(1, 'Teléfono móvil es requerido.'),
   homePhone: z.string().optional(),
   email: z.string().email('Email inválido').min(1, 'Email es requerido.'),
-  residentRole: z.string().min(1, 'Rol de residente es requerido.'),
-  adminRole: z.string().min(1, 'Rol de administrador es requerido.'),
   avatarFile: z.instanceof(File).optional(),
   avatarUrl: z.string().optional(),
 });
 
-export type UserFormSchema = z.infer<typeof userSchema>;
+export type HeadQuarterFormSchema = z.infer<typeof headquarterSchema>;
 
-export function UserForm({
+export function HeadquarterForm({
   onSubmit,
   initialValues,
   onCancel,
   isReadOnly = false,
-}: UserFormProps) {
+}: HeadquarterFormProps) {
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     setValue,
     watch,
-  } = useForm<UserFormSchema>({
-    resolver: zodResolver(userSchema),
+  } = useForm<HeadQuarterFormSchema>({
+    resolver: zodResolver(headquarterSchema),
     defaultValues: {
-      firstName: initialValues.firstName || '',
-      secondName: initialValues.secondName || '',
-      firstLastName: initialValues.firstLastName || '',
-      secondLastName: initialValues.secondLastName || '',
-      nationality: initialValues.nationality || 'Ecuador',
-      identificationType:
-        initialValues.identificationType || 'Cédula de Identidad',
-      identificationNumber: initialValues.identificationNumber || '',
-      birthDate: initialValues.id
-        ? `${initialValues.birthDate.getDate().toString().padStart(2, '0')}/${(initialValues.birthDate.getMonth() + 1).toString().padStart(2, '0')}/${initialValues.birthDate.getFullYear()}`
-        : `${new Date().getDate().toString().padStart(2, '0')}/${(new Date().getMonth() + 1).toString().padStart(2, '0')}/${new Date().getFullYear()}`,
+      avatarUrl: initialValues.avatar || '',
+      type: initialValues.type || '',
+      identification: initialValues.identification || '',
+      address: initialValues.address || '',
+      reference: initialValues.reference || '',
       mobilePhone: initialValues.mobilePhone || '',
       homePhone: initialValues.homePhone || '',
       email: initialValues.email || '',
-      residentRole: initialValues.residentRole || '',
-      adminRole: initialValues.adminRole || '',
-      avatarUrl: initialValues.avatar || '',
     },
   });
 
   const avatarUrl = watch('avatarUrl');
   const nationality = watch('nationality');
 
-  const onSubmitForm = (data: UserFormSchema) => {
+  const onSubmitForm = (data: HeadQuarterFormSchema) => {
     const userData = {
       ...data,
       id: initialValues.id,
@@ -113,7 +101,7 @@ export function UserForm({
       <div className="space-y-8">
         {/* Personal Information */}
         <FormSection
-          title="Información de usuario"
+          title="Información de la sede"
           toolbar={
             <div className="flex items-center gap-2.5">
               <span className="text-sm">Perfil público</span>
@@ -137,41 +125,7 @@ export function UserForm({
             />
           </FormField>
 
-          <FormField label="Primer Nombre">
-            <FormTextInput
-              register={register('firstName')}
-              error={errors.firstName}
-              placeholder="Ingresa el primer nombre"
-              disabled={isSubmitting || isReadOnly}
-            />
-          </FormField>
-
-          <FormField label="Segundo Nombre">
-            <FormTextInput
-              register={register('secondName')}
-              placeholder="Ingresa el segundo nombre"
-              disabled={isSubmitting || isReadOnly}
-            />
-          </FormField>
-
-          <FormField label="Primer Apellido">
-            <FormTextInput
-              register={register('firstLastName')}
-              error={errors.firstLastName}
-              placeholder="Ingresa el primer apellido"
-              disabled={isSubmitting || isReadOnly}
-            />
-          </FormField>
-
-          <FormField label="Segundo Apellido">
-            <FormTextInput
-              register={register('secondLastName')}
-              placeholder="Ingresa el segundo apellido"
-              disabled={isSubmitting || isReadOnly}
-            />
-          </FormField>
-
-          <FormField label="Nacionalidad">
+          <FormField label="Tipo de sede">
             <FormSelect
               value={nationality || 'Ecuador'}
               onValueChange={(value) => {
@@ -193,51 +147,29 @@ export function UserForm({
             />
           </FormField>
 
-          <FormField label="Tipo de identificación">
-            <FormSelect
-              value={watch('identificationType') || 'Cédula de Identidad'}
-              onValueChange={(value) => {
-                if (!isReadOnly) setValue('identificationType', value);
-              }}
-              error={errors.identificationType}
-              options={(
-                DOCUMENT_TYPES_BY_NATIONALITY[nationality || 'Ecuador'] || [
-                  'Cédula',
-                  'Pasaporte',
-                ]
-              ).map((docType) => ({
-                value: docType,
-                label: docType,
-              }))}
-              placeholder="Selecciona el tipo de identificación"
-              disabled={isReadOnly}
-            />
-          </FormField>
-
-          <FormField label="Número de identificación">
+          <FormField label="Nombre o número de la sede">
             <FormTextInput
-              register={register('identificationNumber')}
-              error={errors.identificationNumber}
-              placeholder="Ingresa el número de identificación"
+              register={register('firstName')}
+              error={errors.firstName}
+              placeholder="Ingresa el nombre o número de sede"
               disabled={isSubmitting || isReadOnly}
             />
           </FormField>
 
-          <FormField label="Fecha de nacimiento">
-            <FormDateInput
-              register={register('birthDate', {
-                setValueAs: (value) => {
-                  if (!value) return '';
-                  // Convert DD/MM/YYYY to YYYY-MM-DD for form submission
-                  const parts = value.split('/');
-                  if (parts.length === 3) {
-                    return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-                  }
-                  return value;
-                },
-              })}
-              error={errors.birthDate}
-              disabled={isReadOnly}
+          <FormField label="Dirección de la sede">
+            <FormTextInput
+              register={register('secondName')}
+              placeholder="Ingresa la dirección de la sede"
+              disabled={isSubmitting || isReadOnly}
+            />
+          </FormField>
+
+          <FormField label="Referencia">
+            <FormTextInput
+              register={register('firstLastName')}
+              error={errors.firstLastName}
+              placeholder="Ingresa la referencia"
+              disabled={isSubmitting || isReadOnly}
             />
           </FormField>
         </FormSection>

@@ -37,6 +37,8 @@ model User {
   accounts        Account[]
   Session         Session[]
   createdCommunityUsers CommunityUser[] @relation("CommunityUserCreatedBy")
+  createdHeadquarters Headquarters[] @relation("HeadquartersCreatedBy")
+  createdHeadquartersAssignments HeadquartersUserAssignment[] @relation("AssignmentCreatedBy")
 
   // Indexes for efficient querying
   @@index([invitedByUserId])
@@ -196,10 +198,63 @@ model CommunityUser {
 
   // Relations
   createdByUser      User?    @relation("CommunityUserCreatedBy", fields: [createdByUserId], references: [id])
+  headquartersAssignments HeadquartersUserAssignment[]
 
   // Indexes for efficient querying
   @@index([identificationNumber])
   @@index([email])
   @@index([residentRole])
   @@index([adminRole])
+}
+
+// Headquarters Module
+model Headquarters {
+  id              String   @id @default(uuid())
+  avatar          String?
+  type            String
+  identification  String
+  address         String
+  reference       String?
+  mobilePhone     String
+  homePhone       String?
+  email           String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  isTrashed       Boolean  @default(false)
+  createdByUserId String?
+  isProtected     Boolean  @default(false)
+
+  // Relations
+  createdByUser   User?    @relation("HeadquartersCreatedBy", fields: [createdByUserId], references: [id])
+  userAssignments HeadquartersUserAssignment[]
+
+  // Indexes for efficient querying
+  @@index([type])
+  @@index([identification])
+  @@index([email])
+  @@index([createdByUserId])
+}
+
+model HeadquartersUserAssignment {
+  id            String   @id @default(uuid())
+  headquartersId String
+  communityUserId String
+  position      String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  isTrashed     Boolean  @default(false)
+  createdByUserId String?
+  isProtected   Boolean  @default(false)
+
+  // Relations
+  headquarters  Headquarters @relation(fields: [headquartersId], references: [id], onDelete: Cascade)
+  communityUser CommunityUser @relation(fields: [communityUserId], references: [id], onDelete: Cascade)
+  createdByUser User?        @relation("AssignmentCreatedBy", fields: [createdByUserId], references: [id])
+
+  // Indexes for efficient querying
+  @@index([headquartersId])
+  @@index([communityUserId])
+  @@index([position])
+  @@index([createdByUserId])
+  @@unique([headquartersId, communityUserId, position])
 }
