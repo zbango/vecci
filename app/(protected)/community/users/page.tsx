@@ -58,11 +58,45 @@ import {
 } from '@/app/actions/community-users';
 import { UserDialog } from './components/user-dialog';
 
+// Initial values for new user
+const initialValues: ICommunityUser = {
+  id: '',
+  isPublic: false,
+  avatar: '',
+  firstName: '',
+  secondName: '',
+  firstLastName: '',
+  secondLastName: '',
+  nationality: 'Ecuador',
+  identificationType: 'Cédula de Identidad',
+  identificationNumber: '',
+  birthDate: new Date(),
+  mobilePhone: '',
+  homePhone: '',
+  residentRole: '',
+  adminRole: '',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  isTrashed: false,
+  isProtected: false,
+  createdByUserId: '',
+  email: '',
+};
+
 export default function UsersPage() {
-  const [dialogOpen, setDialogOpen] = useState(false);
+  // Fetch data using server action
+  const [data, setData] = useState<{
+    users: ICommunityUser[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  } | null>(null);
+
   const [editingUser, setEditingUser] = useState<ICommunityUser | null>(null);
   const [viewingUser, setViewingUser] = useState<ICommunityUser | null>(null);
   const [deletingUser, setDeletingUser] = useState<ICommunityUser | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [pagination, setPagination] = useState<PaginationState>({
@@ -74,18 +108,7 @@ export default function UsersPage() {
   ]);
   const [isPending, startTransition] = useTransition();
 
-  // Fetch data using server action
-  const [data, setData] = useState<{
-    users: ICommunityUser[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  } | null>(null);
-
-  // Use actual data for now, can add optimistic updates later
-  const displayUsers = data?.users || [];
-
+  // Table columns definition
   const columns = useMemo<ColumnDef<ICommunityUser>[]>(
     () => [
       {
@@ -135,7 +158,6 @@ export default function UsersPage() {
         enableSorting: true,
         enableHiding: false,
       },
-
       {
         accessorKey: 'residentRole',
         id: 'resident',
@@ -249,9 +271,10 @@ export default function UsersPage() {
     [],
   );
 
+  // Table configuration
   const table = useReactTable({
     columns,
-    data: displayUsers,
+    data: data?.users || [],
     pageCount: data?.totalPages || 0,
     getRowId: (row: ICommunityUser) => row.id,
     state: {
@@ -270,30 +293,7 @@ export default function UsersPage() {
     enableSorting: true,
   });
 
-  const initialValues: ICommunityUser = {
-    id: '',
-    isPublic: false,
-    avatar: '',
-    firstName: '',
-    secondName: '',
-    firstLastName: '',
-    secondLastName: '',
-    nationality: 'Ecuador',
-    identificationType: 'Cédula de Identidad',
-    identificationNumber: '',
-    birthDate: new Date(),
-    mobilePhone: '',
-    homePhone: '',
-    residentRole: '',
-    adminRole: '',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    isTrashed: false,
-    isProtected: false,
-    createdByUserId: '',
-    email: '',
-  };
-
+  // Data fetching
   useEffect(() => {
     const fetchData = async () => {
       const params: SearchParams = {
@@ -313,13 +313,7 @@ export default function UsersPage() {
     });
   }, [pagination.pageIndex, pagination.pageSize, searchQuery, sorting]);
 
-  // Handle search
-  const handleSearch = (value: string) => {
-    setSearchQuery(value);
-    setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
-  };
-
-  // Handle save user (create or update)
+  // CRUD handlers
   const handleSaveUser = async (
     userData: ICommunityUser & { avatarFile?: File },
   ) => {
@@ -377,20 +371,17 @@ export default function UsersPage() {
     }
   };
 
-  // Handle view user
   const handleViewUser = (user: ICommunityUser) => {
     setViewingUser(user);
     setDialogOpen(true);
   };
 
-  // Handle edit user
   const handleEditUser = (user: ICommunityUser) => {
     setEditingUser(user);
     setViewingUser(null);
     setDialogOpen(true);
   };
 
-  // Handle delete user
   const handleDeleteUser = async () => {
     if (!deletingUser) return;
 
@@ -413,6 +404,12 @@ export default function UsersPage() {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  // Handle search
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+    setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
   };
 
   return (

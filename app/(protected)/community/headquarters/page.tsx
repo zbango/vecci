@@ -12,6 +12,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { Eye, MoreVertical, Pencil, Search, Trash } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -72,10 +73,12 @@ export default function HeadquartersPage() {
     total: number;
     totalPages: number;
   } | null>(null);
+
   const [editingItem, setEditingItem] = useState<IHeadquarters | null>(null);
   const [viewingItem, setViewingItem] = useState<IHeadquarters | null>(null);
   const [deletingItem, setDeletingItem] = useState<IHeadquarters | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -85,7 +88,6 @@ export default function HeadquartersPage() {
     { id: 'type', desc: false },
   ]);
   const [isPending, startTransition] = useTransition();
-  const [isDeleting, setIsDeleting] = useState(false);
 
   // Table columns definition
   const columns = useMemo<ColumnDef<IHeadquarters>[]>(
@@ -103,23 +105,40 @@ export default function HeadquartersPage() {
       {
         accessorKey: 'identification',
         header: ({ column }) => (
-          <DataGridColumnHeader title="Identificación" column={column} />
+          <DataGridColumnHeader title="Nombre" column={column} />
         ),
-        cell: ({ row }) => (
-          <span className="text-sm">{row.original.identification}</span>
-        ),
-        size: 150,
+        cell: ({ row }) => {
+          const initials = `${row.original.identification[0]}`;
+
+          return (
+            <div className="flex items-center gap-2.5">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center">
+                <Avatar>
+                  <AvatarImage src={row.original.avatar || ''} alt="" />
+                  <AvatarFallback>{initials}</AvatarFallback>
+                </Avatar>
+              </div>
+              <div className="flex flex-col gap-2">
+                <span className="text-sm font-normal">
+                  {row.original.identification}
+                </span>
+              </div>
+            </div>
+          );
+        },
+        size: 290,
         enableSorting: true,
         enableHiding: false,
       },
       {
         accessorKey: 'address',
         header: ({ column }) => (
-          <DataGridColumnHeader title="Dirección" column={column} />
+          <DataGridColumnHeader title="Unidades" column={column} />
         ),
-        cell: ({ row }) => (
-          <span className="text-sm">{row.original.address}</span>
-        ),
+        // cell: ({ row }) => (
+        //   <span className="text-sm">{row.original.address}</span>
+        // ),
+        cell: () => <span className="text-sm">-</span>,
         size: 200,
         enableSorting: true,
         enableHiding: false,
@@ -127,11 +146,9 @@ export default function HeadquartersPage() {
       {
         accessorKey: 'email',
         header: ({ column }) => (
-          <DataGridColumnHeader title="Email" column={column} />
+          <DataGridColumnHeader title="Parqueaderos" column={column} />
         ),
-        cell: ({ row }) => (
-          <span className="text-sm">{row.original.email}</span>
-        ),
+        cell: () => <span className="text-sm">-</span>,
         size: 200,
         enableSorting: true,
         enableHiding: false,
@@ -139,27 +156,11 @@ export default function HeadquartersPage() {
       {
         accessorKey: 'mobilePhone',
         header: ({ column }) => (
-          <DataGridColumnHeader title="Teléfono" column={column} />
+          <DataGridColumnHeader title="Bodegas" column={column} />
         ),
-        cell: ({ row }) => (
-          <span className="text-sm">{row.original.mobilePhone}</span>
-        ),
+        cell: () => <span className="text-sm">-</span>,
         size: 150,
         enableSorting: true,
-        enableHiding: false,
-      },
-      {
-        accessorKey: 'userAssignments',
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Usuarios Asignados" column={column} />
-        ),
-        cell: ({ row }) => (
-          <span className="text-sm">
-            {row.original.userAssignments?.length || 0} usuarios
-          </span>
-        ),
-        size: 150,
-        enableSorting: false,
         enableHiding: false,
       },
       {
@@ -179,11 +180,15 @@ export default function HeadquartersPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="bottom" align="start">
-                <DropdownMenuItem onClick={() => handleViewItem(row.original)}>
+                <DropdownMenuItem
+                  onClick={() => handleViewHeadquarter(row.original)}
+                >
                   <Eye />
                   Ver
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleEditItem(row.original)}>
+                <DropdownMenuItem
+                  onClick={() => handleEditHeadquarter(row.original)}
+                >
                   <Pencil />
                   Editar
                 </DropdownMenuItem>
@@ -250,7 +255,7 @@ export default function HeadquartersPage() {
   }, [pagination.pageIndex, pagination.pageSize, searchQuery, sorting]);
 
   // CRUD handlers
-  const handleSaveItem = async (headquartersData: IHeadquarters) => {
+  const handleSaveHeadquarter = async (headquartersData: IHeadquarters) => {
     try {
       const formData = new FormData();
       formData.append('avatar', headquartersData.avatar || '');
@@ -290,7 +295,7 @@ export default function HeadquartersPage() {
     }
   };
 
-  const handleDeleteItem = async () => {
+  const handleDeleteHeadquarter = async () => {
     if (!deletingItem) return;
 
     try {
@@ -315,13 +320,13 @@ export default function HeadquartersPage() {
     }
   };
 
-  const handleViewItem = (item: IHeadquarters) => {
+  const handleViewHeadquarter = (item: IHeadquarters) => {
     setViewingItem(item);
     setEditingItem(null);
     setDialogOpen(true);
   };
 
-  const handleEditItem = (item: IHeadquarters) => {
+  const handleEditHeadquarter = (item: IHeadquarters) => {
     setEditingItem(item);
     setViewingItem(null);
     setDialogOpen(true);
@@ -401,7 +406,7 @@ export default function HeadquartersPage() {
           }
         }}
         initialValues={editingItem || viewingItem || initialValues}
-        onSave={handleSaveItem}
+        onSave={handleSaveHeadquarter}
         isReadOnly={!!viewingItem}
       />
 
@@ -416,7 +421,7 @@ export default function HeadquartersPage() {
             ? `¿Estás seguro de que quieres eliminar ${deletingItem.type}? Esta acción no se puede deshacer.`
             : ''
         }
-        onConfirm={handleDeleteItem}
+        onConfirm={handleDeleteHeadquarter}
         isLoading={isDeleting}
       />
     </div>

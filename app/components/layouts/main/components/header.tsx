@@ -1,12 +1,15 @@
 'use client';
 
-import {
-  Bell,
-  Menu,
-  MessageCircleMore,
-  Search,
-  SquareChevronRight,
-} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { UserDropdownMenu } from '@/partials/topbar/user-dropdown-menu';
+import { Menu, SquareChevronRight } from 'lucide-react';
+import { toAbsoluteUrl } from '@/lib/helpers';
+import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useScrollPosition } from '@/hooks/use-scroll-position';
+import { Button } from '@/components/ui/button';
 import {
   Sheet,
   SheetBody,
@@ -14,24 +17,11 @@ import {
   SheetHeader,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { useEffect, useState } from 'react';
-
-import { Breadcrumb } from './breadcrumb';
-import { Button } from '@/components/ui/button';
-import { ChatSheet } from '@/partials/topbar/chat-sheet';
 import { Container } from '@/components/common/container';
-import Link from 'next/link';
-import { MegaMenuMobile } from './mega-menu-mobile';
-import { NotificationsSheet } from '@/partials/topbar/notifications-sheet';
-import { SearchDialog } from '@/partials/dialogs/search/search-dialog';
-import { SidebarMenu } from './sidebar-menu';
 import { StoreClientTopbar } from '@/app/(protected)/store-client/components/common/topbar';
-import { UserDropdownMenu } from '@/partials/topbar/user-dropdown-menu';
-import { cn } from '@/lib/utils';
-import { toAbsoluteUrl } from '@/lib/helpers';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { usePathname } from 'next/navigation';
-import { useScrollPosition } from '@/hooks/use-scroll-position';
+import { Breadcrumb } from './breadcrumb';
+import { MegaMenuMobile } from './mega-menu-mobile';
+import { SidebarMenu } from './sidebar-menu';
 
 export function Header() {
   const [isSidebarSheetOpen, setIsSidebarSheetOpen] = useState(false);
@@ -121,7 +111,7 @@ export function Header() {
             <StoreClientTopbar />
           ) : (
             <>
-              {!mobileMode && (
+              {/*  {!mobileMode && (
                 <SearchDialog
                   trigger={
                     <Button
@@ -146,8 +136,8 @@ export function Header() {
                     <MessageCircleMore className="size-4.5!" />
                   </Button>
                 }
-              />
-              <NotificationsSheet
+              /> */}
+              {/* <NotificationsSheet
                 trigger={
                   <Button
                     variant="ghost"
@@ -158,7 +148,7 @@ export function Header() {
                     <Bell className="size-4.5!" />
                   </Button>
                 }
-              />
+              /> */}
 
               <UserDropdownMenu
                 trigger={

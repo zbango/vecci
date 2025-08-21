@@ -1,47 +1,28 @@
 import { ReactNode } from 'react';
 import Link from 'next/link';
-import { I18N_LANGUAGES, Language } from '@/i18n/config';
-import {
-  BetweenHorizontalStart,
-  Coffee,
-  CreditCard,
-  FileText,
-  Globe,
-  Moon,
-  Settings,
-  Shield,
-  User,
-  UserCircle,
-  Users,
-} from 'lucide-react';
+import { Moon, User } from 'lucide-react';
 import { signOut, useSession } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 import { toAbsoluteUrl } from '@/lib/helpers';
-import { useLanguage } from '@/providers/i18n-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Switch } from '@/components/ui/switch';
 
 export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
   const { data: session } = useSession();
-  const { changeLanguage, language } = useLanguage();
+  // const { changeLanguage, language } = useLanguage();
   const { theme, setTheme } = useTheme();
 
-  const handleLanguage = (lang: Language) => {
-    changeLanguage(lang.code);
-  };
+  // const handleLanguage = (lang: Language) => {
+  //   changeLanguage(lang.code);
+  // };
 
   const handleThemeToggle = (checked: boolean) => {
     setTheme(checked ? 'dark' : 'light');
@@ -84,7 +65,7 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
         <DropdownMenuSeparator />
 
         {/* Menu Items */}
-        <DropdownMenuItem asChild>
+        {/*         <DropdownMenuItem asChild>
           <Link
             href="/public-profile/profiles/default"
             className="flex items-center gap-2"
@@ -92,19 +73,19 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
             <UserCircle />
             Public Profile
           </Link>
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
         <DropdownMenuItem asChild>
           <Link
             href="/account/home/user-profile"
             className="flex items-center gap-2"
           >
             <User />
-            My Profile
+            Mi perfil
           </Link>
         </DropdownMenuItem>
 
         {/* My Account Submenu */}
-        <DropdownMenuSub>
+        {/*         <DropdownMenuSub>
           <DropdownMenuSubTrigger className="flex items-center gap-2">
             <Settings />
             My Account
@@ -165,9 +146,9 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
               </Link>
             </DropdownMenuItem>
           </DropdownMenuSubContent>
-        </DropdownMenuSub>
+        </DropdownMenuSub> */}
 
-        <DropdownMenuItem asChild>
+        {/*         <DropdownMenuItem asChild>
           <Link
             href="https://devs.keenthemes.com"
             className="flex items-center gap-2"
@@ -175,10 +156,10 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
             <FileText />
             Dev Forum
           </Link>
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
 
         {/* Language Submenu with Radio Group */}
-        <DropdownMenuSub>
+        {/* <DropdownMenuSub>
           <DropdownMenuSubTrigger className="flex items-center gap-2 [&_[data-slot=dropdown-menu-sub-trigger-indicator]]:hidden hover:[&_[data-slot=badge]]:border-input data-[state=open]:[&_[data-slot=badge]]:border-input">
             <Globe />
             <span className="flex items-center justify-between gap-2 grow relative">
@@ -222,7 +203,7 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
               ))}
             </DropdownMenuRadioGroup>
           </DropdownMenuSubContent>
-        </DropdownMenuSub>
+        </DropdownMenuSub> */}
 
         <DropdownMenuSeparator />
 
@@ -233,7 +214,7 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
         >
           <Moon />
           <div className="flex items-center gap-2 justify-between grow">
-            Dark Mode
+            Tema oscuro
             <Switch
               size="sm"
               checked={theme === 'dark'}
@@ -248,7 +229,7 @@ export function UserDropdownMenu({ trigger }: { trigger: ReactNode }) {
             className="w-full"
             onClick={() => signOut()}
           >
-            Logout
+            Cerrar sesión
           </Button>
         </div>
       </DropdownMenuContent>

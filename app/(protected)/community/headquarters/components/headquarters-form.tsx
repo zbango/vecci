@@ -1,5 +1,13 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Plus } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { POSITIONS } from '@/config/constants';
+import AvatarUpload from '@/components/ui/avatar-upload';
+import { Button } from '@/components/ui/button';
 import {
   FormDynamicAssignments,
   FormPhoneInput,
@@ -8,38 +16,58 @@ import {
   LoadingButton,
 } from '@/components/ui/form-components';
 import { FormField, FormSection } from '@/components/ui/form-section';
+import { Switch } from '@/components/ui/switch';
 import {
-  IHeadquarters,
   getActiveCommunityUsers,
+  IHeadquarters,
 } from '@/app/actions/headquarters';
-import { useEffect, useState } from 'react';
-
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
 
 // Form schema
-const HeadquartersFormSchema = z.object({
-  avatar: z.string().optional(),
-  type: z.string().min(1, 'Tipo es requerido'),
-  identification: z.string().min(1, 'Identificación es requerida'),
-  address: z.string().min(1, 'Dirección es requerida'),
-  reference: z.string().optional(),
-  mobilePhone: z.string().min(1, 'Teléfono móvil es requerido'),
-  homePhone: z.string().optional(),
-  email: z.string().email('Formato de email inválido'),
-  assignments: z
-    .array(
-      z.object({
-        communityUserId: z.string().min(1, 'Usuario es requerido'),
-        position: z.string().min(1, 'Cargo es requerido'),
-      }),
-    )
-    .optional()
-    .default([]),
-});
+const HeadquartersFormSchema = z
+  .object({
+    avatar: z.string().optional(),
+    type: z.string().min(1, 'Tipo es requerido'),
+    identification: z.string().min(1, 'Identificación es requerida'),
+    address: z.string().min(1, 'Dirección es requerida'),
+    reference: z.string().optional(),
+    mobilePhone: z.string().min(1, 'Teléfono móvil es requerido'),
+    homePhone: z.string().optional(),
+    email: z.string().email('Formato de email inválido'),
+    assignments: z
+      .array(
+        z.object({
+          communityUserId: z.string().min(1, 'Usuario es requerido'),
+          position: z.string().min(1, 'Cargo es requerido'),
+        }),
+      )
+      .default([]),
+    avatarFile: z.instanceof(File).optional(),
+    avatarUrl: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    const ids = (data.assignments || [])
+      .map((a) => a.communityUserId)
+      .filter(Boolean);
+    const duplicates = ids.filter((id, idx) => ids.indexOf(id) !== idx);
+    if (duplicates.length > 0) {
+      (data.assignments || []).forEach((a, idx) => {
+        if (a.communityUserId && duplicates.includes(a.communityUserId)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Este usuario ya está asignado',
+            path: ['assignments', idx, 'communityUserId'],
+          });
+        }
+      });
+    }
+  });
 
-type HeadquartersFormData = z.infer<typeof HeadquartersFormSchema>;
+type HeadquartersFormData = Omit<
+  z.infer<typeof HeadquartersFormSchema>,
+  'assignments'
+> & {
+  assignments?: Array<{ communityUserId: string; position: string }>;
+};
 
 interface HeadquartersFormProps {
   onSubmit: (data: IHeadquarters) => Promise<void>;
@@ -51,11 +79,11 @@ interface HeadquartersFormProps {
 interface CommunityUser {
   id: string;
   firstName: string;
-  secondName?: string;
+  secondName?: string | null;
   firstLastName: string;
-  secondLastName?: string;
+  secondLastName?: string | null;
   email: string;
-  avatar?: string;
+  avatar?: string | null;
 }
 
 export function HeadquartersForm({
@@ -65,16 +93,16 @@ export function HeadquartersForm({
   isReadOnly = false,
 }: HeadquartersFormProps) {
   const [communityUsers, setCommunityUsers] = useState<CommunityUser[]>([]);
-  const [assignments, setAssignments] = useState<
-    Array<{ communityUserId: string; position: string }>
-  >([]);
+  const [addAssignmentFn, setAddAssignmentFn] = useState<(() => void) | null>(
+    null,
+  );
 
   // Load community users for assignment selector
   useEffect(() => {
     const loadCommunityUsers = async () => {
       try {
         const users = await getActiveCommunityUsers();
-        setCommunityUsers(users);
+        setCommunityUsers(users as unknown as CommunityUser[]);
       } catch (error) {
         console.error('Error loading community users:', error);
       }
@@ -82,18 +110,7 @@ export function HeadquartersForm({
     loadCommunityUsers();
   }, []);
 
-  // Initialize assignments from initial values
-  useEffect(() => {
-    if (initialValues.userAssignments) {
-      const initialAssignments = initialValues.userAssignments.map(
-        (assignment) => ({
-          communityUserId: assignment.communityUserId,
-          position: assignment.position,
-        }),
-      );
-      setAssignments(initialAssignments);
-    }
-  }, [initialValues.userAssignments]);
+  // NOTE: initialization of assignments moved below once form is created
 
   const form = useForm<HeadquartersFormData>({
     resolver: zodResolver(HeadquartersFormSchema),
@@ -106,7 +123,8 @@ export function HeadquartersForm({
       mobilePhone: initialValues.mobilePhone || '',
       homePhone: initialValues.homePhone || '',
       email: initialValues.email || '',
-      assignments: assignments,
+      assignments: [],
+      avatarUrl: initialValues.avatar || '',
     },
   });
 
@@ -118,116 +136,244 @@ export function HeadquartersForm({
     setValue,
   } = form;
 
+  const avatarUrl = watch('avatarUrl');
+
   const handleFormSubmit = handleSubmit((data) => {
     const headquartersData = {
       ...data,
-      assignments: assignments, // Use the local state for assignments
+      userAssignments: (data.assignments || []).map((a) => ({
+        communityUserId: a.communityUserId,
+        position: a.position,
+      })),
       id: initialValues.id,
       createdAt: initialValues.createdAt,
       updatedAt: initialValues.updatedAt,
       isTrashed: initialValues.isTrashed,
       isProtected: initialValues.isProtected,
       createdByUserId: initialValues.createdByUserId,
-    } as IHeadquarters;
+    } as unknown as IHeadquarters;
 
     return onSubmit(headquartersData);
   });
 
-  const handleAssignmentsChange = (
-    newAssignments: Array<{ communityUserId: string; position: string }>,
-  ) => {
-    setAssignments(newAssignments);
-    setValue('assignments', newAssignments);
+  // Initialize assignments into the form
+  useEffect(() => {
+    const initialAssignments = (initialValues.userAssignments || []).map(
+      (assignment) => ({
+        communityUserId: assignment.communityUserId,
+        position: assignment.position,
+      }),
+    );
+    if (initialAssignments.length === 0) {
+      setValue('assignments', [{ communityUserId: '', position: '' }]);
+    } else {
+      setValue('assignments', initialAssignments);
+    }
+  }, [initialValues.userAssignments, setValue]);
+
+  const handleAddAssignment = () => {
+    if (addAssignmentFn) addAssignmentFn();
   };
 
   return (
     <form onSubmit={handleFormSubmit}>
       <div className="space-y-8">
-        <FormSection title="Información de la Sede">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField label="Tipo de Sede">
-              <FormSelect
-                value={watch('type')}
-                onValueChange={(value) => setValue('type', value)}
-                error={errors.type}
-                options={[
-                  { value: 'principal', label: 'Sede Principal' },
-                  { value: 'secundaria', label: 'Sede Secundaria' },
-                  { value: 'temporal', label: 'Sede Temporal' },
-                ]}
-                placeholder="Selecciona el tipo de sede"
-                disabled={isSubmitting || isReadOnly}
-              />
-            </FormField>
+        <FormSection
+          title="Información de la Sede"
+          toolbar={
+            <div className="flex items-center gap-2.5">
+              <span className="text-sm">Perfil público</span>
+              <Switch defaultChecked />
+            </div>
+          }
+        >
+          <FormField label="Foto">
+            <AvatarUpload
+              onFileChange={(file) => {
+                if (file) {
+                  setValue('avatarFile', file.file);
+                  // Create preview URL for display
+                  setValue('avatarUrl', file.preview);
+                } else {
+                  setValue('avatarFile', undefined);
+                  setValue('avatarUrl', '');
+                }
+              }}
+              defaultAvatar={avatarUrl || initialValues.avatar || undefined}
+            />
+          </FormField>
+          <FormField label="Tipo de Sede">
+            <FormSelect
+              value={watch('type')}
+              onValueChange={(value) => setValue('type', value)}
+              error={errors.type}
+              options={[
+                { value: 'Bodega', label: 'Bodega' },
+                { value: 'Casa', label: 'Casa' },
+                {
+                  value: 'Conjunto residencial',
+                  label: 'Conjunto residencial',
+                },
+                { value: 'Departamento', label: 'Departamento' },
+                { value: 'Edificio', label: 'Edificio' },
+                { value: 'Parqueadero', label: 'Parqueadero' },
+              ]}
+              placeholder="Selecciona el tipo de sede"
+              disabled={isSubmitting || isReadOnly}
+            />
+          </FormField>
 
-            <FormField label="Identificación">
-              <FormTextInput
-                register={register('identification')}
-                error={errors.identification}
-                placeholder="Ingresa la identificación"
-                disabled={isSubmitting || isReadOnly}
-              />
-            </FormField>
+          <FormField label="Nombre o número de la sede">
+            <FormTextInput
+              register={register('identification')}
+              error={errors.identification}
+              placeholder="Ingresa el nombre o número de la sede"
+              disabled={isSubmitting || isReadOnly}
+            />
+          </FormField>
 
-            <FormField label="Email">
-              <FormTextInput
-                register={register('email')}
-                error={errors.email}
-                type="email"
-                placeholder="Ingresa el email"
-                disabled={isSubmitting || isReadOnly}
-              />
-            </FormField>
+          <FormField label="Dirección de la sede">
+            <FormTextInput
+              register={register('address')}
+              error={errors.address}
+              placeholder="Ingresa la dirección de la sede"
+              disabled={isSubmitting || isReadOnly}
+            />
+          </FormField>
 
-            <FormField label="Teléfono Móvil">
-              <FormPhoneInput
-                register={register('mobilePhone')}
-                error={errors.mobilePhone}
-                placeholder="Ingresa el teléfono móvil"
-                disabled={isSubmitting || isReadOnly}
-              />
-            </FormField>
-
-            <FormField label="Teléfono Fijo">
-              <FormPhoneInput
-                register={register('homePhone')}
-                error={errors.homePhone}
-                placeholder="Ingresa el teléfono fijo"
-                disabled={isSubmitting || isReadOnly}
-              />
-            </FormField>
-          </div>
+          <FormField label="Referencia">
+            <FormTextInput
+              register={register('reference')}
+              error={errors.reference}
+              placeholder="Ingresa una referencia (opcional)"
+              disabled={isSubmitting || isReadOnly}
+            />
+          </FormField>
         </FormSection>
 
-        <FormSection title="Dirección">
-          <div className="grid grid-cols-1 gap-6">
-            <FormField label="Dirección">
-              <FormTextInput
-                register={register('address')}
-                error={errors.address}
-                placeholder="Ingresa la dirección completa"
-                disabled={isSubmitting || isReadOnly}
-              />
-            </FormField>
+        {/* Contact Information */}
+        <FormSection title="Información de Contacto">
+          <FormField label="Telefono móvil">
+            <FormPhoneInput
+              register={register('mobilePhone')}
+              error={errors.mobilePhone}
+              placeholder="Ej: 998766265"
+              disabled={isSubmitting || isReadOnly}
+            />
+          </FormField>
 
-            <FormField label="Referencia">
-              <FormTextInput
-                register={register('reference')}
-                error={errors.reference}
-                placeholder="Ingresa una referencia (opcional)"
-                disabled={isSubmitting || isReadOnly}
-              />
-            </FormField>
-          </div>
+          <FormField label="Telefono fijo">
+            <FormPhoneInput
+              register={register('homePhone')}
+              placeholder="Ej: 22524226"
+              disabled={isSubmitting || isReadOnly}
+            />
+          </FormField>
+
+          <FormField label="Correo electrónico">
+            <FormTextInput
+              register={register('email')}
+              error={errors.email}
+              type="email"
+              placeholder="Ingresa correo electrónico"
+              disabled={isSubmitting || isReadOnly}
+            />
+          </FormField>
         </FormSection>
 
-        <FormSection title="Asignación de Usuarios">
+        <FormSection
+          title="Asignación de Usuarios"
+          toolbar={
+            <div className="flex items-center gap-2.5">
+              <Button
+                type="button"
+                variant="primary"
+                appearance="ghost"
+                onClick={handleAddAssignment}
+                disabled={isSubmitting || isReadOnly}
+              >
+                Agregar
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          }
+        >
           <FormDynamicAssignments
-            assignments={assignments}
-            onAssignmentsChange={handleAssignmentsChange}
-            communityUsers={communityUsers}
-            error={errors.assignments}
+            control={form.control}
+            name={'assignments'}
+            defaultItem={{ communityUserId: '', position: '' }}
+            minItems={1}
+            showAddButton={false}
+            onRegisterAdd={(fn) => setAddAssignmentFn(() => fn)}
             disabled={isSubmitting || isReadOnly}
+            renderItem={({ index, disabled: d }) => (
+              <>
+                <div className="flex items-center gap-10 px-8 py-2.5">
+                  <div className="w-[220px]">
+                    <span className="text-sm font-normal">Cargo</span>
+                  </div>
+                  <div className="flex-1">
+                    <FormSelect
+                      value={form.watch(
+                        `assignments.${index}.position` as const,
+                      )}
+                      onValueChange={(v) =>
+                        form.setValue(
+                          `assignments.${index}.position` as const,
+                          v,
+                        )
+                      }
+                      options={POSITIONS.map((p: string) => ({
+                        value: p,
+                        label: p,
+                      }))}
+                      placeholder="Selecciona el cargo"
+                      disabled={d}
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-10 px-8 py-2.5">
+                  <div className="w-[220px]">
+                    <span className="text-sm font-normal">Usuario</span>
+                  </div>
+                  <div className="flex-1">
+                    <FormSelect
+                      value={form.watch(
+                        `assignments.${index}.communityUserId` as const,
+                      )}
+                      onValueChange={(v) =>
+                        form.setValue(
+                          `assignments.${index}.communityUserId` as const,
+                          v,
+                        )
+                      }
+                      options={communityUsers
+                        .filter((u) => {
+                          const selectedIds = (form.watch('assignments') || [])
+                            .map((a) => a.communityUserId)
+                            .filter(Boolean);
+                          const current = form.watch(
+                            `assignments.${index}.communityUserId` as const,
+                          );
+                          // allow current selection to remain visible
+                          return (
+                            !selectedIds.includes(u.id) || u.id === current
+                          );
+                        })
+                        .map((u) => ({
+                          value: u.id,
+                          label:
+                            `${u.firstName ?? ''} ${u.secondName ?? ''} ${u.firstLastName ?? ''} ${u.secondLastName ?? ''}`
+                              .replace(/\s+/g, ' ')
+                              .trim(),
+                        }))}
+                      placeholder="Selecciona un usuario"
+                      disabled={d}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
           />
         </FormSection>
       </div>
