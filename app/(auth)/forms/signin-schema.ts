@@ -4,12 +4,9 @@ export const getSigninSchema = () => {
   return z.object({
     email: z
       .string()
-      .email({ message: 'Please enter a valid email address.' })
-      .min(1, { message: 'Email is required.' }),
-    password: z
-      .string()
-      .min(6, { message: 'Password must be at least 6 characters long.' })
-      .min(1, { message: 'Password is required.' }),
+      .email({ message: 'Por favor ingresa una dirección de correo válida.' })
+      .min(1, { message: 'Correo electrónico es requerido.' }),
+    password: z.string().min(1, { message: 'Contraseña es requerida.' }),
     rememberMe: z.boolean().optional(),
   });
 };

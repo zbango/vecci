@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AlertCircle, Check, Eye, EyeOff } from 'lucide-react';
@@ -22,7 +23,6 @@ import {
   ChangePasswordSchemaType,
   getChangePasswordSchema,
 } from '../forms/change-password-schema';
-import Link from 'next/link';
 
 export default function Page() {
   const router = useRouter();
@@ -64,7 +64,7 @@ export default function Page() {
           setError(errorData.message || 'Invalid or expired token.');
         }
       } catch {
-        setError('Unable to verify the reset token.');
+        setError('No se pudo verificar el token de reseteo.');
       } finally {
         setVerifyingToken(false);
       }
@@ -73,7 +73,7 @@ export default function Page() {
     if (token) {
       verifyToken();
     } else {
-      setError('No reset token provided.');
+      setError('No se proporcionó un token de reseteo.');
     }
   }, [token]);
 
@@ -90,14 +90,14 @@ export default function Page() {
       });
 
       if (response.ok) {
-        setSuccessMessage('Password reset successful! Redirecting to login...');
+        setSuccessMessage('Reseteo de clave exitoso! Redirigiendo a inicio...');
         setTimeout(() => router.push('/signin'), 3000);
       } else {
         const errorData = await response.json();
         setError(errorData.message || 'Password reset failed.');
       }
     } catch {
-      setError('An error occurred while resetting the password.');
+      setError('Ocurrió un error al resetear la contraseña.');
     } finally {
       setIsProcessing(false);
     }
@@ -164,7 +164,7 @@ export default function Page() {
                     <FormControl>
                       <Input
                         type={passwordVisible ? 'text' : 'password'}
-                        placeholder="Enter new password"
+                        placeholder="Ingresa una nueva contraseña"
                         {...field}
                       />
                     </FormControl>
@@ -200,7 +200,7 @@ export default function Page() {
                     <FormControl>
                       <Input
                         type={passwordConfirmationVisible ? 'text' : 'password'}
-                        placeholder="Confirm new password"
+                        placeholder="Confirma la nueva contraseña"
                         {...field}
                       />
                     </FormControl>

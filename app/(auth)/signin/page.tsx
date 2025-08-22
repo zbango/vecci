@@ -1,7 +1,15 @@
 'use client';
 
-import { Alert, AlertIcon, AlertTitle } from '@/components/ui/alert';
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { signIn } from 'next-auth/react';
+import { useForm } from 'react-hook-form';
+import { Alert, AlertIcon, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
   FormControl,
@@ -10,18 +18,9 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { SigninSchemaType, getSigninSchema } from '../forms/signin-schema';
-
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import Link from 'next/link';
 import { Spinner } from '@/components/ui/spinners';
-import { signIn } from 'next-auth/react';
-import { useForm } from 'react-hook-form';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { getSigninSchema, SigninSchemaType } from '../forms/signin-schema';
 
 export default function Page() {
   const router = useRouter();
@@ -31,6 +30,7 @@ export default function Page() {
 
   const form = useForm<SigninSchemaType>({
     resolver: zodResolver(getSigninSchema()),
+    mode: 'onBlur',
     defaultValues: {
       email: 'demo@kt.com',
       password: 'demo123',
@@ -60,7 +60,7 @@ export default function Page() {
       setError(
         err instanceof Error
           ? err.message
-          : 'An unexpected error occurred. Please try again.',
+          : 'Ocurrió un error inesperado. Por favor, inténtalo de nuevo.',
       );
       // } finally {
       setIsProcessing(false);
@@ -82,7 +82,7 @@ export default function Page() {
           ¿Necesitas una cuenta?{' '}
           <Link
             href="/signup"
-            className="text-sm font-semibold text-foreground hover:text-primary"
+            className="text-sm font-semibold text-blue-600 hover:font-bold hover:text-primary"
           >
             Regístrate
           </Link>
@@ -133,7 +133,7 @@ export default function Page() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>Correo electrónico</FormLabel>
               <FormControl>
                 <Input placeholder="email@email.com" {...field} />
               </FormControl>
@@ -148,10 +148,10 @@ export default function Page() {
           render={({ field }) => (
             <FormItem>
               <div className="flex justify-between items-center gap-2.5">
-                <FormLabel>Password</FormLabel>
+                <FormLabel>Contraseña</FormLabel>
                 <Link
                   href="/reset-password"
-                  className="text-sm font-semibold text-foreground hover:text-primary"
+                  className="text-sm font-semibold text-blue-600 hover:font-bold hover:text-primary"
                 >
                   ¿Olvidaste tu contraseña?
                 </Link>
@@ -198,7 +198,11 @@ export default function Page() {
                 />
                 <label
                   htmlFor="remember-me"
-                  className="text-sm leading-none text-muted-foreground"
+                  className={`text-sm leading-none cursor-pointer ${
+                    field.value
+                      ? 'text-foreground font-medium'
+                      : 'text-muted-foreground'
+                  }`}
                 >
                   Recuérdame
                 </label>
@@ -208,7 +212,12 @@ export default function Page() {
         </div>
 
         <div className="flex flex-col gap-2.5">
-          <Button type="submit" disabled={isProcessing}>
+          <Button
+            type="submit"
+            disabled={
+              isProcessing || !form.watch('email') || !form.watch('password')
+            }
+          >
             {isProcessing ? <Spinner className="size-4 animate-spin" /> : null}
             Iniciar sesión
           </Button>

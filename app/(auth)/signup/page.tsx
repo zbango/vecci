@@ -23,6 +23,7 @@ import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinners';
 import { Icons } from '@/components/common/icons';
 import { RecaptchaPopover } from '@/components/common/recaptcha-popover';
+import { checkPasswordRequirements } from '../forms/password-schema';
 import { getSignupSchema, SignupSchemaType } from '../forms/signup-schema';
 
 export default function Page() {
@@ -34,9 +35,12 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean | null>(false);
   const [showRecaptcha, setShowRecaptcha] = useState(false);
+  const [showPasswordRequirements, setShowPasswordRequirements] =
+    useState(false);
 
   const form = useForm<SignupSchemaType>({
     resolver: zodResolver(getSignupSchema()),
+    mode: 'onBlur',
     defaultValues: {
       name: '',
       email: '',
@@ -95,13 +99,13 @@ export default function Page() {
           <Check />
         </AlertIcon>
         <AlertTitle>
-          You have successfully signed up! Please check your email to verify
-          your account and then{' '}
+          ¡Te has registrado exitosamente! Revisa tu correo electrónico para
+          verificar tu cuenta y luego{' '}
           <Link
             href="/signin/"
             className="text-primary hover:text-primary-darker"
           >
-            Log in
+            Iniciar sesión
           </Link>
           .
         </AlertTitle>
@@ -115,7 +119,7 @@ export default function Page() {
         <form onSubmit={handleSubmit} className="block w-full space-y-5">
           <div className="space-y-1.5 pb-3">
             <h1 className="text-2xl font-semibold tracking-tight text-center">
-              Sign Up to Metronic
+              Crear una cuenta
             </h1>
           </div>
 
@@ -125,7 +129,8 @@ export default function Page() {
               type="button"
               onClick={() => signIn('google', { callbackUrl: '/' })}
             >
-              <Icons.googleColorful className="size-4!" /> Sign up with Google
+              <Icons.googleColorful className="size-4!" /> Registrarse con
+              Google
             </Button>
           </div>
 
@@ -135,7 +140,7 @@ export default function Page() {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-background px-2 text-muted-foreground">
-                or
+                o
               </span>
             </div>
           </div>
@@ -154,9 +159,9 @@ export default function Page() {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Name</FormLabel>
+                <FormLabel>Nombre y Apellido</FormLabel>
                 <FormControl>
-                  <Input placeholder="Your Name" {...field} />
+                  <Input placeholder="Tu nombre y apellido" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -168,9 +173,9 @@ export default function Page() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>Correo electrónico</FormLabel>
                 <FormControl>
-                  <Input placeholder="Your email" {...field} />
+                  <Input placeholder="Tu correo electrónico" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -182,12 +187,23 @@ export default function Page() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel>Contraseña</FormLabel>
                 <div className="relative">
                   <Input
-                    placeholder="Your password"
+                    placeholder="Tu contraseña"
                     type={passwordVisible ? 'text' : 'password'}
+                    onFocus={() => setShowPasswordRequirements(true)}
                     {...field}
+                    onBlur={() => {
+                      field.onBlur();
+                      const requirements = checkPasswordRequirements(
+                        field.value,
+                      );
+                      const allMet = requirements.every((req) => req.met);
+                      if (allMet) {
+                        setShowPasswordRequirements(false);
+                      }
+                    }}
                   />
                   <Button
                     type="button"
@@ -207,7 +223,22 @@ export default function Page() {
                     )}
                   </Button>
                 </div>
-                <FormMessage />
+                {form.watch('password') && showPasswordRequirements && (
+                  <div className="mt-2 space-y-1">
+                    {checkPasswordRequirements(form.watch('password')).map(
+                      (req, index) => (
+                        <div
+                          key={index}
+                          className={`text-xs flex items-center gap-1 ${req.met ? 'text-green-600' : 'text-red-500'}`}
+                        >
+                          <span>{req.met ? '✓' : '•'}</span>
+                          <span>{req.text}</span>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                )}
+                {!showPasswordRequirements && <FormMessage />}
               </FormItem>
             )}
           />
@@ -217,12 +248,17 @@ export default function Page() {
             name="passwordConfirmation"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Confirm Password</FormLabel>
+                <FormLabel>Confirmar contraseña</FormLabel>
                 <div className="relative">
                   <Input
                     type={passwordConfirmationVisible ? 'text' : 'password'}
+                    placeholder="Confirma tu contraseña"
                     {...field}
-                    placeholder="Confirm your password"
+                    onChange={(e) => {
+                      field.onChange(e);
+                      // Trigger validation immediately for password confirmation
+                      form.trigger('passwordConfirmation');
+                    }}
                   />
                   <Button
                     type="button"
@@ -248,7 +284,11 @@ export default function Page() {
                     )}
                   </Button>
                 </div>
-                <FormMessage />
+                {!(
+                  field.value &&
+                  form.watch('password') &&
+                  field.value === form.watch('password')
+                ) && <FormMessage />}
               </FormItem>
             )}
           />
@@ -268,16 +308,20 @@ export default function Page() {
                       />
                       <label
                         htmlFor="accept"
-                        className="text-sm leading-none text-muted-foreground"
+                        className={`text-sm leading-none cursor-pointer ${
+                          field.value
+                            ? 'text-foreground font-medium'
+                            : 'text-muted-foreground'
+                        }`}
                       >
-                        I agree to the
+                        Acepto la
                       </label>
                       <Link
                         href="/privacy-policy"
                         target="_blank"
-                        className="-ms-0.5 text-sm font-semibold text-foreground hover:text-primary"
+                        className="-ms-0.5 text-sm font-semibold text-blue-600 hover:font-bold hover:text-primary"
                       >
-                        Privacy Policy
+                        Términos y Condiciones
                       </Link>
                     </div>
                   </FormControl>
@@ -297,23 +341,33 @@ export default function Page() {
               }}
               onVerify={handleVerifiedSubmit}
               trigger={
-                <Button type="submit" disabled={isProcessing}>
+                <Button
+                  type="submit"
+                  disabled={
+                    isProcessing ||
+                    !form.watch('name') ||
+                    !form.watch('email') ||
+                    !form.watch('password') ||
+                    !form.watch('passwordConfirmation') ||
+                    !form.watch('accept')
+                  }
+                >
                   {isProcessing ? (
                     <Spinner className="size-4 animate-spin" />
                   ) : null}
-                  Continue
+                  Registrarse
                 </Button>
               }
             />
           </div>
 
           <div className="text-sm text-muted-foreground text-center">
-            Already have an account?{' '}
+            Ya tienes una cuenta?{' '}
             <Link
               href="/signin"
-              className="text-sm text-sm font-semibold text-foreground hover:text-primary"
+              className="text-sm text-sm font-semibold text-blue-600 hover:font-bold hover:text-primary"
             >
-              Sign In
+              Iniciar sesión
             </Link>
           </div>
         </form>

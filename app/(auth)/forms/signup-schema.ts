@@ -6,22 +6,24 @@ export const getSignupSchema = () => {
     .object({
       name: z
         .string()
-        .min(2, { message: 'Name must be at least 2 characters long.' })
-        .min(1, { message: 'Name is required.' }),
+        .min(1, { message: 'Nombre y apellido es requerido.' })
+        .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ]{2,}\s+[a-zA-ZáéíóúÁÉÍÓÚñÑ]{2,}.*$/, {
+          message: 'Nombre ingresado no válido.',
+        }),
       email: z
         .string()
-        .email({ message: 'Please enter a valid email address.' })
-        .min(1, { message: 'Email is required.' }),
+        .email({ message: 'Email ingresado no válido.' })
+        .min(1, { message: 'Email es requerido.' }),
       password: getPasswordSchema(), // Uses the updated password schema with direct messages
       passwordConfirmation: z.string().min(1, {
-        message: 'Password confirmation is required.',
+        message: 'Confirmación de contraseña es requerida.',
       }),
       accept: z.boolean().refine((val) => val === true, {
-        message: 'You must accept the terms and conditions.',
+        message: 'Debe aceptar los términos y condiciones.',
       }),
     })
     .refine((data) => data.password === data.passwordConfirmation, {
-      message: 'Passwords do not match.',
+      message: 'Las contraseñas no coinciden.',
       path: ['passwordConfirmation'],
     });
 };

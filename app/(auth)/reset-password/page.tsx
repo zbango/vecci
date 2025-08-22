@@ -28,11 +28,25 @@ export default function Page() {
   const [showRecaptcha, setShowRecaptcha] = useState(false);
 
   const formSchema = z.object({
-    email: z.string().email({ message: 'Please enter a valid email address.' }),
+    email: z
+      .string()
+      .refine((email) => !email.includes(' '), {
+        message: 'El correo no puede contener espacios.',
+      })
+      .refine(
+        (email) => {
+          const emailRegex = /^[a-zA-Z]{2,}@[a-zA-Z]{2,}\.[a-zA-Z]{2,}$/;
+          return emailRegex.test(email);
+        },
+        {
+          message: 'Ingrese un correo electrónico válido.',
+        },
+      ),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    mode: 'onChange',
     defaultValues: {
       email: '',
     },
@@ -77,7 +91,7 @@ export default function Page() {
       setError(
         err instanceof Error
           ? err.message
-          : 'An unexpected error occurred. Please try again.',
+          : 'Ocurrió un error inesperado. Por favor, inténtalo de nuevo.',
       );
     } finally {
       setIsProcessing(false);
@@ -90,10 +104,11 @@ export default function Page() {
         <form onSubmit={handleSubmit} className="block w-full space-y-5">
           <div className="text-center space-y-1 pb-3">
             <h1 className="text-2xl font-semibold tracking-tight">
-              Reset Password
+              Restablecer Contraseña
             </h1>
             <p className="text-sm text-muted-foreground">
-              Enter your email to receive a password reset link.
+              Ingresa tu correo electrónico para recibir un enlace de
+              restablecimiento.
             </p>
           </div>
 
@@ -120,13 +135,18 @@ export default function Page() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>Correo electrónico</FormLabel>
                 <FormControl>
                   <Input
                     type="email"
-                    placeholder="Enter your email address"
+                    placeholder="Ingresa tu correo electrónico"
                     disabled={!!success || isProcessing}
                     {...field}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\s/g, '');
+                      field.onChange(value);
+                      form.trigger('email');
+                    }}
                   />
                 </FormControl>
                 <FormMessage />
@@ -145,11 +165,18 @@ export default function Page() {
             trigger={
               <Button
                 type="submit"
-                disabled={!!success || isProcessing}
+                disabled={
+                  !!success ||
+                  isProcessing ||
+                  !form.watch('email') ||
+                  !/^[a-zA-Z]{2,}@[a-zA-Z]{2,}\.[a-zA-Z]{2,}$/.test(
+                    form.watch('email'),
+                  )
+                }
                 className="w-full"
               >
                 {isProcessing ? <Spinner className="animate-spin" /> : null}
-                Submit
+                Enviar
               </Button>
             }
           />
@@ -157,7 +184,7 @@ export default function Page() {
           <div className="space-y-3">
             <Button type="button" variant="outline" className="w-full" asChild>
               <Link href="/signin">
-                <ArrowLeft className="size-3.5" /> Back
+                <ArrowLeft className="size-3.5" /> Volver
               </Link>
             </Button>
           </div>

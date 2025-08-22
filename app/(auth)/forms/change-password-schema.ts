@@ -8,7 +8,7 @@ export const getChangePasswordSchema = () => {
       confirmPassword: z.string(),
     })
     .refine((data) => data.newPassword === data.confirmPassword, {
-      message: 'Passwords do not match.',
+      message: 'Contraseñas no coinciden.',
       path: ['confirmPassword'],
     });
 };
@@ -20,7 +20,7 @@ export type ChangePasswordSchemaType = z.infer<
 export const getChangePasswordApiSchema = () => {
   return z.object({
     token: z.string().nonempty({
-      message: 'A valid token is required to change the password.',
+      message: 'Un token válido es requerido para cambiar la contraseña.',
     }),
     newPassword: getPasswordSchema(),
   });

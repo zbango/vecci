@@ -12,7 +12,7 @@ import { Spinner } from '@/components/ui/spinners';
 export default function Page() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [message, setMessage] = useState<string | null>('Verifying...');
+  const [message, setMessage] = useState<string | null>('Verificando...');
   const [error, setError] = useState<string | null>(null);
 
   const verify = useCallback(
@@ -28,17 +28,17 @@ export default function Page() {
 
         if (res.status === 200) {
           setError(null);
-          setMessage('Your email has been successfully verified!');
+          setMessage('¡Tu correo electrónico ha sido verificado exitosamente!');
           setTimeout(() => {
             router.push('/signin'); // Redirect to sign-in page or another page
           }, 2000);
         } else {
           setMessage(null);
-          setError(data.message || 'Verification failed.');
+          setError(data.message || 'Verificación fallida.');
         }
       } catch {
         setMessage(null);
-        setError('An error occurred during verification.');
+        setError('Ocurrió un error durante la verificación.');
       }
     },
     [router],
@@ -49,7 +49,7 @@ export default function Page() {
 
     if (!token) {
       setMessage(null);
-      setError('Invalid or missing token.');
+      setError('Token inválido o faltante.');
       return;
     }
 
@@ -59,7 +59,9 @@ export default function Page() {
   return (
     <Suspense>
       <div className="w-full space-y-6">
-        <h1 className="text-2x font-semibold">Email Verification</h1>
+        <h1 className="text-2x font-semibold">
+          Verificación de Correo Electrónico
+        </h1>
         {error && (
           <>
             <Alert variant="destructive">
@@ -71,7 +73,7 @@ export default function Page() {
 
             <Button asChild>
               <Link href="/signin" className="text-primary">
-                Go back to Login
+                Volver al Inicio de Sesión
               </Link>
             </Button>
           </>

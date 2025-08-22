@@ -40,7 +40,9 @@ export default function AuthAccountDeactivatedPage() {
                 </Link>
                 <span className="size-0.75 bg-mono/50 rounded-full"></span>
                 <Button mode="link" asChild>
-                  <Link href="/account/members/team-info">Personal Info</Link>
+                  <Link href="/account/members/team-info">
+                    Información Personal
+                  </Link>
                 </Button>
               </div>
             </ToolbarDescription>
