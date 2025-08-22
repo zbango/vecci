@@ -40,6 +40,12 @@ model User {
   createdHeadquarters Headquarters[] @relation("HeadquartersCreatedBy")
   createdHeadquartersAssignments HeadquartersUserAssignment[] @relation("AssignmentCreatedBy")
 
+  // Units relations
+  createdUnits Unit[] @relation("UnitCreatedBy")
+  createdUnitAssignments UnitUserAssignment[] @relation("UnitAssignmentCreatedBy")
+  createdUnitAdditionalSpaces UnitAdditionalSpace[] @relation("UnitAdditionalSpaceCreatedBy")
+  createdUnitAdditionalSpaceAssignments UnitAdditionalSpaceUserAssignment[] @relation("UnitAdditionalSpaceAssignmentCreatedBy")
+
   // Indexes for efficient querying
   @@index([invitedByUserId])
   @@index([roleId])
@@ -200,6 +206,10 @@ model CommunityUser {
   createdByUser      User?    @relation("CommunityUserCreatedBy", fields: [createdByUserId], references: [id])
   headquartersAssignments HeadquartersUserAssignment[]
 
+  // Unit relations
+  unitAssignments UnitUserAssignment[]
+  additionalSpaceAssignments UnitAdditionalSpaceUserAssignment[]
+
   // Indexes for efficient querying
   @@index([identificationNumber])
   @@index([email])
@@ -227,6 +237,7 @@ model Headquarters {
   // Relations
   createdByUser   User?    @relation("HeadquartersCreatedBy", fields: [createdByUserId], references: [id])
   userAssignments HeadquartersUserAssignment[]
+  units           Unit[]
 
   // Indexes for efficient querying
   @@index([type])
@@ -257,4 +268,103 @@ model HeadquartersUserAssignment {
   @@index([position])
   @@index([createdByUserId])
   @@unique([headquartersId, communityUserId, position])
+}
+
+// Units Module
+model Unit {
+  id              String   @id @default(uuid())
+  avatar          String?
+  type            String
+  identification  String
+  area            Int
+  reference       String?
+  headquartersId  String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  isTrashed       Boolean  @default(false)
+  createdByUserId String?
+  isProtected     Boolean  @default(false)
+
+  // Relations
+  headquarters  Headquarters @relation(fields: [headquartersId], references: [id])
+  createdByUser User?        @relation("UnitCreatedBy", fields: [createdByUserId], references: [id])
+  userAssignments UnitUserAssignment[]
+  additionalSpaces UnitAdditionalSpace[]
+
+  // Indexes
+  @@index([type])
+  @@index([identification])
+  @@index([headquartersId])
+  @@index([createdByUserId])
+}
+
+model UnitUserAssignment {
+  id               String   @id @default(uuid())
+  unitId           String
+  communityUserId  String
+  role             String   // Propietario | Inquilino
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  isTrashed        Boolean  @default(false)
+  createdByUserId  String?
+  isProtected      Boolean  @default(false)
+
+  // Relations
+  unit           Unit          @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  communityUser  CommunityUser @relation(fields: [communityUserId], references: [id], onDelete: Cascade)
+  createdByUser  User?         @relation("UnitAssignmentCreatedBy", fields: [createdByUserId], references: [id])
+
+  // Indexes
+  @@index([unitId])
+  @@index([communityUserId])
+  @@index([role])
+  @@index([createdByUserId])
+  @@unique([unitId, communityUserId, role])
+}
+
+model UnitAdditionalSpace {
+  id              String   @id @default(uuid())
+  unitId          String
+  type            String
+  identification  String
+  area            Int
+  reference       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  isTrashed       Boolean  @default(false)
+  createdByUserId String?
+  isProtected     Boolean  @default(false)
+
+  // Relations
+  unit           Unit @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  createdByUser  User? @relation("UnitAdditionalSpaceCreatedBy", fields: [createdByUserId], references: [id])
+  userAssignments UnitAdditionalSpaceUserAssignment[]
+
+  // Indexes
+  @@index([unitId])
+  @@index([createdByUserId])
+}
+
+model UnitAdditionalSpaceUserAssignment {
+  id                 String   @id @default(uuid())
+  additionalSpaceId  String
+  communityUserId    String
+  role               String // Propietario | Inquilino
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  isTrashed          Boolean  @default(false)
+  createdByUserId    String?
+  isProtected        Boolean  @default(false)
+
+  // Relations
+  additionalSpace UnitAdditionalSpace @relation(fields: [additionalSpaceId], references: [id], onDelete: Cascade)
+  communityUser  CommunityUser        @relation(fields: [communityUserId], references: [id], onDelete: Cascade)
+  createdByUser  User?                @relation("UnitAdditionalSpaceAssignmentCreatedBy", fields: [createdByUserId], references: [id])
+
+  // Indexes
+  @@index([additionalSpaceId])
+  @@index([communityUserId])
+  @@index([role])
+  @@index([createdByUserId])
+  @@unique([additionalSpaceId, communityUserId, role])
 }

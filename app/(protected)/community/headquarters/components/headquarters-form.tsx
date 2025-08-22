@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { POSITIONS } from '@/config/constants';
+import { HEADQUARTER_TYPES, POSITIONS } from '@/config/constants';
 import AvatarUpload from '@/components/ui/avatar-upload';
 import { Button } from '@/components/ui/button';
 import {
@@ -207,17 +207,7 @@ export function HeadquartersForm({
               value={watch('type')}
               onValueChange={(value) => setValue('type', value)}
               error={errors.type}
-              options={[
-                { value: 'Bodega', label: 'Bodega' },
-                { value: 'Casa', label: 'Casa' },
-                {
-                  value: 'Conjunto residencial',
-                  label: 'Conjunto residencial',
-                },
-                { value: 'Departamento', label: 'Departamento' },
-                { value: 'Edificio', label: 'Edificio' },
-                { value: 'Parqueadero', label: 'Parqueadero' },
-              ]}
+              options={HEADQUARTER_TYPES}
               placeholder="Selecciona el tipo de sede"
               disabled={isSubmitting || isReadOnly}
             />

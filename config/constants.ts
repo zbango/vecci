@@ -304,10 +304,42 @@ export const POSITIONS = [
 ];
 
 export const HEADQUARTER_TYPES = [
-  'Conjunto Residencial',
-  'Edificio',
-  'Casa',
-  'Bodega',
-  'Parqueadero',
-  'Departamento',
+  { value: 'Conjunto Residencial', label: 'Conjunto Residencial' },
+  { value: 'Edificio', label: 'Edificio' },
+  { value: 'Casa', label: 'Casa' },
+  { value: 'Bodega', label: 'Bodega' },
+  { value: 'Parqueadero', label: 'Parqueadero' },
+  { value: 'Departamento', label: 'Departamento' },
+];
+
+export const UNIT_TYPES = [
+  { value: 'Casa', label: 'Casa' },
+  { value: 'Departamento / Apartamento', label: 'Departamento / Apartamento' },
+  { value: 'Dúplex', label: 'Dúplex' },
+  { value: 'Tríplex', label: 'Tríplex' },
+  { value: 'Penthouse', label: 'Penthouse' },
+  { value: 'Townhouse', label: 'Townhouse' },
+  { value: 'Cabaña', label: 'Cabaña' },
+  { value: 'Villa', label: 'Villa' },
+  { value: 'Quinta', label: 'Quinta' },
+  {
+    value: 'Habitación / Cuarto en alquiler',
+    label: 'Habitación / Cuarto en alquiler',
+  },
+  { value: 'Parqueadero residencial', label: 'Parqueadero residencial' },
+  { value: 'Bodega residencial', label: 'Bodega residencial' },
+  { value: 'Local comercial', label: 'Local comercial' },
+  { value: 'Oficina', label: 'Oficina' },
+  { value: 'Consultorio', label: 'Consultorio' },
+  { value: 'Bodega / Almacén comercial', label: 'Bodega / Almacén comercial' },
+  { value: 'Galpón / Nave industrial', label: 'Galpón / Nave industrial' },
+  {
+    value: 'Centro comercial / Strip mall',
+    label: 'Centro comercial / Strip mall',
+  },
+  { value: 'Parqueadero comercial', label: 'Parqueadero comercial' },
+  { value: 'Terreno / Lote', label: 'Terreno / Lote' },
+  { value: 'Finca', label: 'Finca' },
+  { value: 'Hacienda / Estancia', label: 'Hacienda / Estancia' },
+  { value: 'Parcela / Solar', label: 'Parcela / Solar' },
 ];

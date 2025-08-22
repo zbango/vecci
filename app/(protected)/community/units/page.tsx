@@ -1,5 +1,16 @@
 'use client';
 
+import React, { useEffect, useMemo, useState, useTransition } from 'react';
+import {
+  ColumnDef,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  PaginationState,
+  SortingState,
+  useReactTable,
+} from '@tanstack/react-table';
 import {
   Building,
   CloudUpload,
@@ -10,6 +21,7 @@ import {
   Settings2,
   Trash,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardFooter,
@@ -18,16 +30,11 @@ import {
   CardTitle,
   CardToolbar,
 } from '@/components/ui/card';
-import {
-  ColumnDef,
-  PaginationState,
-  SortingState,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
+import { DataGrid } from '@/components/ui/data-grid';
+import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
+import { DataGridColumnVisibility } from '@/components/ui/data-grid-column-visibility';
+import { DataGridPagination } from '@/components/ui/data-grid-pagination';
+import { DataGridTable } from '@/components/ui/data-grid-table';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,54 +43,67 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input, InputWrapper } from '@/components/ui/input';
-import React, { useMemo, useState } from 'react';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-
-import { Button } from '@/components/ui/button';
-import { DataGrid } from '@/components/ui/data-grid';
-import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
-import { DataGridColumnVisibility } from '@/components/ui/data-grid-column-visibility';
-import { DataGridPagination } from '@/components/ui/data-grid-pagination';
-import { DataGridTable } from '@/components/ui/data-grid-table';
 import { PageHeader } from '@/components/ui/page-header';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import {
+  createUnit,
+  getUnits,
+  IUnit,
+  type SearchParams,
+} from '@/app/actions/units';
 import { UnitDialog } from './components/unit-dialog';
 
-interface IUnit {
-  id: string;
-  type: string;
-  code: string;
-  area: number;
-  headquarter: string;
-  reference: string;
-}
-
-const units: IUnit[] = [
-  {
-    id: '173594941-2',
-    type: 'Departamento',
-    code: '101',
-    area: 80,
-    headquarter: 'Sede Principal',
-    reference: 'N/A',
-  },
-  {
-    id: '103594941-2',
-    type: 'Departamento',
-    code: 'A102',
-    area: 90,
-    headquarter: 'Sede Principal',
-    reference: 'Torre A',
-  },
-];
+// Initial values for new user
+const initialValues: any = {
+  id: '',
+  isPublic: false,
+  avatar: '',
+  firstName: '',
+  secondName: '',
+  firstLastName: '',
+  secondLastName: '',
+  nationality: 'Ecuador',
+  identificationType: 'Cédula de Identidad',
+  identificationNumber: '',
+  birthDate: new Date(),
+  mobilePhone: '',
+  homePhone: '',
+  residentRole: '',
+  adminRole: '',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  isTrashed: false,
+  isProtected: false,
+  createdByUserId: '',
+  email: '',
+};
 
 export default function UnitsPage() {
+  const [editingUnit, setEditingUnit] = useState<any | null>(null);
+  const [viewingUnit, setViewingUnit] = useState<any | null>(null);
+
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [, startTransition] = useTransition();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [data, setData] = useState<{
+    units: any[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }>({
+    units: [],
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 0,
+  });
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 5,
   });
   const [sorting, setSorting] = useState<SortingState>([
-    { id: 'name', desc: true },
+    { id: 'type', desc: true },
   ]);
 
   const columns = useMemo<ColumnDef<IUnit>[]>(
@@ -107,7 +127,7 @@ export default function UnitsPage() {
               </div>
               <div className="flex flex-col gap-2">
                 <span className="text-sm font-medium text-[#111B37]">
-                  {row.original.code}
+                  {row.original.type}
                 </span>
               </div>
             </div>
@@ -123,7 +143,7 @@ export default function UnitsPage() {
         header: ({ column }) => (
           <DataGridColumnHeader title="Nombre o código" column={column} />
         ),
-        cell: ({ row }) => <span>{row.original.code}</span>,
+        cell: ({ row }) => <span>{row.original.identification}</span>,
         size: 290,
         enableSorting: true,
         enableHiding: false,
@@ -145,7 +165,7 @@ export default function UnitsPage() {
         header: ({ column }) => (
           <DataGridColumnHeader title="Sede" column={column} />
         ),
-        cell: ({ row }) => <span>{row.original.headquarter}</span>,
+        cell: ({ row }) => <span>{row.original.headquarters.type}</span>,
         size: 130,
         enableSorting: true,
         enableHiding: false,
@@ -201,8 +221,8 @@ export default function UnitsPage() {
 
   const table = useReactTable({
     columns,
-    data: units,
-    pageCount: Math.ceil((units?.length || 0) / pagination.pageSize),
+    data: data?.units || [],
+    pageCount: Math.ceil((data?.total || 0) / pagination.pageSize),
     getRowId: (row: IUnit) => row.id,
     state: {
       pagination,
@@ -216,6 +236,51 @@ export default function UnitsPage() {
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
+
+  const handleSaveUnit = async (unitData: any) => {
+    try {
+      const form = new FormData();
+      form.append('unit', JSON.stringify(unitData));
+      await createUnit(form);
+      // refresh data
+      const params: SearchParams = {
+        page: pagination.pageIndex + 1,
+        limit: pagination.pageSize,
+        query: searchQuery,
+        sort:
+          sorting[0]?.id === 'name'
+            ? 'identification'
+            : sorting[0]?.id || 'createdAt',
+        dir: sorting[0]?.desc ? 'desc' : 'asc',
+      };
+      const result = await getUnits(params);
+      setData(result as any);
+      setDialogOpen(false);
+    } catch (error) {
+      console.error('Error saving unit:', error);
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const params: SearchParams = {
+        page: pagination.pageIndex + 1,
+        limit: pagination.pageSize,
+        query: searchQuery,
+        sort:
+          sorting[0]?.id === 'name'
+            ? 'identification'
+            : sorting[0]?.id || 'createdAt',
+        dir: sorting[0]?.desc ? 'desc' : 'asc',
+      };
+      const result = await getUnits(params);
+      setData(result as any);
+    };
+    startTransition(() => {
+      fetchData();
+    });
+  }, [pagination.pageIndex, pagination.pageSize, searchQuery, sorting]);
 
   return (
     <div className="flex flex-col gap-8 px-5 py-8 max-w-[1200px] mx-auto">
@@ -244,8 +309,7 @@ export default function UnitsPage() {
           </>
         }
       />
-
-      <DataGrid table={table} recordCount={units?.length || 0}>
+      <DataGrid table={table} recordCount={data?.total || 0}>
         <Card>
           <CardHeader className="py-3">
             <CardTitle>Mostrando 10 de 100 unidades</CardTitle>
@@ -259,7 +323,11 @@ export default function UnitsPage() {
                 >
                   <Search />
                 </Button>
-                <Input type="text" placeholder="Buscar Unidad" />
+                <Input
+                  type="text"
+                  placeholder="Buscar Unidad"
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </InputWrapper>
               <DataGridColumnVisibility
                 table={table}
@@ -283,8 +351,19 @@ export default function UnitsPage() {
           </CardFooter>
         </Card>
       </DataGrid>
-
-      <UnitDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+      <UnitDialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) {
+            setEditingUnit(null);
+            setViewingUnit(null);
+          }
+        }}
+        initialValues={editingUnit || viewingUnit || initialValues}
+        onSave={handleSaveUnit}
+        isReadOnly={!!viewingUnit}
+      />
     </div>
   );
 }
